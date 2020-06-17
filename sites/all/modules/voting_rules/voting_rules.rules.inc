@@ -1,13 +1,12 @@
 <?php
-// $Id$
 
 /**
  * @file
- * Provides Rules integration for the Voting API module
+ * Provides Rules integration for the Voting API module.
  */
 
 /**
- * Implementation of hook_rules_data_type_info().
+ * Implements hook_rules_data_type_info().
  */
 function voting_rules_rules_data_info() {
   // Default properties common to vote and vote results.
@@ -15,7 +14,8 @@ function voting_rules_rules_data_info() {
     'entity_type' => array(
       'label' => t('Entity type'),
       'description' => t('The type of the entity.'),
-      'type' => 'token', // Unrelated with token module! Means machine name.
+  // Unrelated with token module! Means machine name.
+      'type' => 'token',
     ),
     'entity_id' => array(
       'label' => t('Entity ID'),
@@ -49,7 +49,7 @@ function voting_rules_rules_data_info() {
       'type' => 'token',
     ),
   );
-  
+
   // Data info for vote and vote results.
   $data_info = array(
     'vote' => array(
@@ -95,11 +95,11 @@ function voting_rules_rules_data_info() {
       'wrap' => TRUE,
     ),
   );
-  
+
   // Format vote result data info for each defined calculation function (count,
   // sum, average...).
   $votingapi_metadata = votingapi_metadata();
-  
+
   foreach ($votingapi_metadata['functions'] as $function => $info) {
     $data_info['vote_results']['property info'][$function] = array(
       'label' => $info['name'],
@@ -107,12 +107,9 @@ function voting_rules_rules_data_info() {
       'type' => 'vote_result',
       'wrap' => TRUE,
       'property info' => array(
-        'vote_cache_id' => array(
-          'label' => t("Cache ID"),
-          'type' => 'integer',
-        ),
         'function' => array(
           'label' => t("Function"),
+          'description' => t('Function used to calculate the vote - average, count, etc'),
           'type' => 'text',
         ),
       ) + $defaults,
@@ -123,30 +120,34 @@ function voting_rules_rules_data_info() {
 }
 
 /**
- * Implementation of hook_rules_data_info_alter().
+ * Implemnts hook_rules_data_info_alter().
  */
 function voting_rules_rules_data_info_alter(&$data_info) {
+
   $entity_types = voting_rules_get_types();
-  
+
   foreach ($entity_types as $entity_type => $label) {
-    $data_info[$entity_type]['property info']['votes'] = array(
-      'label' => t('Vote'),
-      'description' => t('The vote.'),
-      'type' => 'list<vote>',
-      'getter callback' => 'voting_rules_get_votes',
-    );
-    $data_info[$entity_type]['property info']['vote_results'] = array(
-      'label' => t('Vote results'),
-      'description' => t('The vote results.'),
-      'type' => 'vote_results',
-      'wrap' => TRUE,
-      'getter callback' => 'voting_rules_get_vote_results',
-    );
+    if (isset($data_info[$entity_type])) {
+      $data_info[$entity_type]['property info']['votes'] = array(
+        'label' => t('Vote'),
+        'description' => t('The vote.'),
+        'type' => 'list<vote>',
+        'getter callback' => 'voting_rules_get_votes',
+      );
+      $data_info[$entity_type]['property info']['vote_results'] = array(
+        'label' => t('Vote results'),
+        'description' => t('The vote results.'),
+        'type' => 'vote_results',
+        'wrap' => TRUE,
+        'getter callback' => 'voting_rules_get_vote_results',
+      );
+    }
   }
+
 }
 
 /**
- * Implementation of hook_rules_event_info().
+ * Implements hook_rules_event_info().
  */
 function voting_rules_rules_event_info() {
   $entity_types = voting_rules_get_types();
@@ -157,14 +158,14 @@ function voting_rules_rules_event_info() {
       'label' => t('User votes on a @label', array('@label' => $label)),
       'variables' => array(
         'vote' => array(
-      		'label' => t('Vote'),
-      		'description' => t('The vote.'),
+          'label' => t('Vote'),
+          'description' => t('The vote.'),
           'type' => 'vote',
           'label' => t('The vote'),
         ),
         $entity_type => array(
-        	'label' => $label,
-        	'description' => t("The @label being voted on", array('@label' => $label)),
+          'label' => $label,
+          'description' => t("The @label being voted on", array('@label' => $label)),
           'type' => $entity_type,
         ),
       ),
@@ -175,13 +176,13 @@ function voting_rules_rules_event_info() {
       'label' => t('User deletes a vote on a @label', array('@label' => $label)),
       'variables' => array(
         'vote' => array(
-      		'label' => t('Vote'),
-      		'description' => t('The vote.'),
+          'label' => t('Vote'),
+          'description' => t('The vote.'),
           'type' => 'vote',
         ),
         $entity_type => array(
-        	'label' => $label,
-        	'description' => t("The @label being voted on", array('@label' => $label)),
+          'label' => $label,
+          'description' => t("The @label being voted on", array('@label' => $label)),
           'type' => $entity_type,
         ),
       ),
@@ -192,13 +193,13 @@ function voting_rules_rules_event_info() {
       'label' => t('Votes are calculated for a @label', array('@label' => $label)),
       'variables' => array(
         'vote_results' => array(
-      		'label' => t('Vote results'),
-      		'description' => t('The vote results.'),
+          'label' => t('Vote results'),
+          'description' => t('The vote results.'),
           'type' => 'vote_results',
         ),
         $entity_type => array(
-        	'label' => $label,
-        	'description' => t("The @label being voted on", array('@label' => $label)),
+          'label' => $label,
+          'description' => t("The @label being voted on", array('@label' => $label)),
           'type' => $entity_type,
         ),
       ),
@@ -210,7 +211,7 @@ function voting_rules_rules_event_info() {
 }
 
 /**
- * Implementation of hook_rules_condition_info().
+ * Implements hook_rules_condition_info().
  */
 function voting_rules_rules_condition_info() {
   return array(
@@ -219,8 +220,8 @@ function voting_rules_rules_condition_info() {
       'named parameter' => TRUE,
       'parameter' => array(
         'vote' => array(
-      		'label' => t('Vote'),
-      		'description' => t('The vote.'),
+          'label' => t('Vote'),
+          'description' => t('The vote.'),
           'type' => 'vote',
         ),
         'operator' => array(
@@ -245,8 +246,8 @@ function voting_rules_rules_condition_info() {
       'named parameter' => TRUE,
       'parameter' => array(
         'vote_results' => array(
-      		'label' => t('Vote results'),
-      		'description' => t('The vote results.'),
+          'label' => t('Vote results'),
+          'description' => t('The vote results.'),
           'type' => 'vote_results',
         ),
         'function' => array(
@@ -293,13 +294,13 @@ function voting_rules_condition_operator_options() {
  * Options list: Supported calculation functions.
  */
 function voting_rules_condition_function_options() {
-	$functions = array();
+  $functions = array();
   $votingapi_metadata = votingapi_metadata();
-  
+
   foreach ($votingapi_metadata['functions'] as $function => $info) {
-  	$functions[$function] = $info['name'];
+    $functions[$function] = $info['name'];
   }
-  
+
   return $functions;
 }
 
@@ -318,7 +319,7 @@ function voting_rules_condition_check_results($args, RulesCondition $condition, 
  * Condition: Check the value of an individual vote.
  */
 function voting_rules_condition_check_vote_value($args, RulesCondition $condition, $op) {
-	if (in_array($args['operator'], array_keys(voting_rules_condition_operator_options()))) {
-  	return eval('return ' . (float) $args['vote']['value'] . $args['operator'] . (float) $args['value'] . ';');
+  if (in_array($args['operator'], array_keys(voting_rules_condition_operator_options()))) {
+    return eval('return ' . (float) $args['vote']['value'] . $args['operator'] . (float) $args['value'] . ';');
   }
 }

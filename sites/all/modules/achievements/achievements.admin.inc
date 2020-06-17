@@ -148,7 +148,7 @@ function achievements_manual_submit($form, &$form_state) {
 
     achievements_unlocked($achievement['id'], $account->uid);
     drupal_set_message(t('%username has been given %achievement.', // yeah, yeah.
-      array('%username' => $account->name, '%achievement' => $achievement['title'])));
+      array('%username' => format_username($account), '%achievement' => $achievement['title'])));
     return;
   }
 
@@ -156,13 +156,13 @@ function achievements_manual_submit($form, &$form_state) {
   if ($form_state['clicked_button']['#achievement_action'] == 'take') {
     if (!achievements_unlocked_already($achievement['id'], $account->uid)) {
       drupal_set_message(t('%username has not unlocked %achievement.', // palm to forehead.
-        array('%username' => $account->name, '%achievement' => $achievement['title'])), 'error');
+        array('%username' => format_username($account), '%achievement' => $achievement['title'])), 'error');
       return;
     }
 
     achievements_locked($achievement['id'], $account->uid);
     drupal_set_message(t('%username has had %achievement taken away.', // nope, nope.
-      array('%username' => $account->name, '%achievement' => $achievement['title'])));
+      array('%username' => format_username($account), '%achievement' => $achievement['title'])));
     return;
   }
 }

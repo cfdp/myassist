@@ -281,7 +281,7 @@ function myassist_user_preprocess_page(&$variables) {
  * Implements hook_preprocess_HOOK().
  * Put author roles in class array
  */
-function myassist_questions_answers_preprocess_node(&$vars) {
+function myassist_user_preprocess_node(&$vars) {
   global $user;
   if (array_key_exists('node', $vars)) {
     $author = user_load($vars['node']->uid);

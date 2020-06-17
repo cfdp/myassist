@@ -1,0 +1,70 @@
+.node-type-blog,
+.node-type-page,
+.node-type-podcast {
+  .breadcrumb {
+    margin-bottom: .8em;
+  }
+  #main {
+    margin-top: $u;
+  }
+  .header-img-wrapper {
+    position: relative;
+    height: 250px;
+    overflow: hidden;
+    margin-top: 42px;
+  }
+  .generic-header-img,
+  .podcast-header {
+    .field-type-image {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      z-index: 1;
+      margin-left: -600px;
+      display: block;
+      img {
+        display: block;
+        max-width: none;
+        height: 250px;
+        width: auto;
+      }
+    }
+  }
+  .generic-header-img-title,
+  .podcast-header-title {
+    position: absolute;    
+    height: 100%;
+    text-align: center;
+    margin-top: 2em;
+    width: 100%;
+    z-index: 2;
+  }
+  .generic-header-img-title:before,
+  .podcast-header-title:before {
+    content: '';
+    display: inline-block;
+    height: 100%;
+    vertical-align: middle;
+  }
+  .generic-header-img-title-wrapper,
+  .podcast-header-title-wrapper {
+    display: inline-block;
+    max-width: 300px;   
+    h1.page__title,
+    h2.subtitle {
+      background: #ffffff;
+      padding: $u*0.4;
+      margin-bottom: $u*.2;
+      position: relative;
+      z-index: 2;
+    }
+    h1.page__title {
+      font-size: 1.8*$u;
+      display: inline-block;
+    }
+    h2.subtitle {
+      margin: 0 auto;
+    }
+  }
+
+}

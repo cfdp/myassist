@@ -1,15 +1,15 @@
 /* Styles for this module that relate to the Myassist_theme are located at /themes/myassist_theme/sass/components/_opeka.scss */
 
+
 /* We want the chat window in all room-sizes to expand to a bigger width */
-body[class^="room-size-"] #main,
-body[class*=" room-size-"] #main {
+
+body.page-admin-opeka #page #main #content,
+body.page-admin-opeka #main,
+body.page-opeka #page #main #content,
+body.page-opeka #main {
   width: 100%;
 }
 
-body[class^="room-size-"] #page #main #content,
-body[class^=" room-size-"] #page #main #content {
-    width: 100%;
-}
 
 /*
 * The following styles are theme independent styles for admin
@@ -21,12 +21,13 @@ body[class^=" room-size-"] #page #main #content {
   padding: 1em;
   background-color: #eee;
 }
+
 #opeka-app .btn {
   display: inline-block;
   padding: 0.5em 1em;
   background-color: #eee;
   border-radius: 0.25em;
-  box-shadow: 0 1px 1px 1px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 1px 1px rgba(0, 0, 0, 0.1);
   border: none;
   font-size: 1em;
   color: #000;
@@ -34,28 +35,35 @@ body[class^=" room-size-"] #page #main #content {
   margin: 0 0.5em 1em 0;
   background-image: none;
 }
+
 #opeka-app .btn:hover,
 #opeka-app .btn:active {
   background-color: #ccc;
   color: #000;
 }
+
 #opeka-app .btn:focus {
   background-color: #ddd;
 }
+
 #opeka-app .btn-success {
   background-color: #88cb62;
   color: #fff;
 }
+
 #opeka-app .form-text {
   margin-bottom: 1em;
 }
+
 #opeka-app select,
 #opeka-app textarea {
   border: solid 1px #eee;
 }
+
 #opeka-app .chat-view-form {
   margin-top: 0.5em;
 }
+
 #opeka-app .message-form .form-text-container {
   float: left;
   max-width: 80%;
@@ -63,16 +71,19 @@ body[class^=" room-size-"] #page #main #content {
   display: block;
   margin-right: 0.5em;
 }
+
 #opeka-app .message-form .message {
   height: 2em;
   width: 100%;
 }
+
 #opeka-app .message-form .send {
   float: left;
   width: 10em;
   display: block;
   max-width: 15%;
 }
+
 #opeka-app .chat-message-list-wrapper {
   height: 30em;
   height: 50vh;
@@ -82,6 +93,7 @@ body[class^=" room-size-"] #page #main #content {
   overflow-y: auto;
   background-color: #fff;
 }
+
 #opeka-app .chat-message-list {
   list-style: none;
   margin: 0;
@@ -92,12 +104,15 @@ body[class^=" room-size-"] #page #main #content {
   right: 0;
   height: auto;
 }
+
 #opeka-app .chat-message-list .system-message {
   color: #d00;
 }
+
 #opeka-app .chat-message-list .whisper-message {
   color: #999;
 }
+
 #opeka-app .chat-message-list .chat-message {
   color: #000;
 }
@@ -107,15 +122,18 @@ body[class^=" room-size-"] #page #main #content {
   float: left;
   font-weight: bold;
 }
+
 #opeka-app .chat-message-list .time,
 #opeka-app .chat-message-list .actions {
   width: auto;
   float: right;
   text-align: right;
 }
+
 #opeka-app .chat-message-list .time {
   color: #999;
 }
+
 #opeka-app .delete-message {
   background: none;
   color: blue;
@@ -123,27 +141,33 @@ body[class^=" room-size-"] #page #main #content {
   border: none;
   cursor: pointer;
 }
+
 #opeka-app .chat-message-list .message,
-#opeka-app .chat-message-list .system-message{
+#opeka-app .chat-message-list .system-message {
   clear: both;
   width: 100%;
   padding-bottom: 0.5em;
 }
+
 #opeka-app .leave-room-form {
   display: block;
   clear: both;
   width: 100%;
 }
+
 #opeka-app .controls {
   margin-bottom: 1em;
 }
+
 #opeka-app .signin-form-tooltip {
-  padding: 0.5em 0;  
+  padding: 0.5em 0;
 }
+
 #opeka-app .chat-view-window {
   position: relative;
   height: 50vh;
 }
+
 #opeka-app .chat-message-list {
   position: absolute;
   bottom: 0.5em;
@@ -154,70 +178,88 @@ body[class^=" room-size-"] #page #main #content {
   overflow-x: hidden;
   overflow-y: auto;
 }
+
 #opeka-app .top-info {
   display: block;
 }
+
 #opeka-app .chat-message,
 #opeka-app .whisper-message,
 #opeka-app .system-message {
   padding-top: 0.5em;
 }
+
 #opeka-app .sender-name,
 #opeka-app .time {
   display: inline-block;
 }
+
 #opeka-app .top-info:after {
   display: none;
 }
+
 #opeka-app .time {
   color: #777;
   font-size: 0.8em;
   text-transform: lowercase;
 }
+
 #opeka-app .system-message {
   color: #777;
 }
+
 #opeka-app .bs-callout-client .sender-name {
   color: #ff866a;
 }
+
 #opeka-app .bs-callout-counselor .sender-name {
   color: #a5d888;
 }
+
 #opeka-app .whisper-message {
   border: dashed 1px #eee;
   padding: 0.5em;
 }
+
 #opeka-app .whisper-message .sender-name {
   color: #a5d888;
 }
+
 #opeka-app .system-message span {
-  display: block; 
+  display: block;
 }
+
 #opeka-app .room-list,
 #opeka-app .chat-message-list {
   list-style: none;
   margin: 0;
   padding: 0;
 }
+
 #opeka-app .footer {
   border-top: dashed 1px #fff;
   padding: 1em 1em 0;
 }
+
 #opeka-app .btn {
   margin-bottom: 1em;
 }
+
 #opeka-app .room-details {
   font-size: 0.8em;
   color: #777;
 }
+
 #opeka-app .content {
   float: none;
   width: auto;
 }
+
 #opeka-app .chat-view-form {
   border-top: solid 1px #eee;
   margin-bottom: 1em;
 }
+
 #opeka-app .chat-view-form .form-submit,
 #opeka-app .chat-view-form .form-text-container {
   display: block;
@@ -226,14 +268,17 @@ body[class^=" room-size-"] #page #main #content {
   float: left;
   box-sizing: border-box;
 }
+
 #opeka-app .chat-view-form .form-submit {
   width: 20%;
   padding: 0.5em 0;
 }
+
 #opeka-app .chat-view-form .form-text-container {
   width: 80%;
   margin-right: 0.5em;
 }
+
 #opeka-app .chat-view-form .form-text-container textarea {
   height: 5.5em;
   border: none;
@@ -241,10 +286,12 @@ body[class^=" room-size-"] #page #main #content {
   box-sizing: border-box;
   padding: 0.5em;
 }
+
 #opeka-app .leave-room-form {
   padding: 1em 0;
   clear: both;
 }
+
 #opeka-app .leave-room-form .form-submit {
   width: auto;
   max-width: 100%;
@@ -254,28 +301,38 @@ body[class^=" room-size-"] #page #main #content {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
 #opeka-app .myassist-message-anonymous {
   display: none;
 }
+
 #opeka-app .user-list {
   list-style: none;
   padding: 0;
   margin: 0 0 1em;
 }
+
 #opeka-app .user-list-item {
   position: relative;
+  height: 20px;
+  margin-top: .75em;
 }
 
-#opeka-app .dropdown-toggle {
+#opeka-app .user-list-item a {
+  margin-left: 32px;
+}
+
+#opeka-app a.dropdown-toggle {
   position: absolute;
-  right: 0;
   top: 0;
   bottom: 0;
   display: block;
   width: 1.5em;
   height: 1.5em;
   padding: 0;
+  margin-left: 0;
 }
+
 #opeka-app .dropdown-toggle .icon-user {
   width: 1.5em;
   height: 1.5em;
@@ -283,6 +340,22 @@ body[class^=" room-size-"] #page #main #content {
   background: url(/sites/all/themes/myassist_theme/images/icons/plus.svg) no-repeat center center transparent;
   background-size: 0.8em auto;
 }
+
+#opeka-app .dropdown-toggle .name {
+  position: absolute;
+  left: 32px;
+  top: 2px;
+  line-height: 1em;
+}
+
+#opeka-app .dropdown-toggle .meta {
+  left: 128px;
+  position: absolute;
+  top: 2px;
+  width: 77px;
+  line-height: 1em;
+}
+
 #opeka-app .dropdown-menu {
   display: none;
   list-style: none;
@@ -292,22 +365,27 @@ body[class^=" room-size-"] #page #main #content {
   top: 1.5em;
   left: 0;
   right: 0;
-  box-shadow: 0 2px 1px 1px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 1px 1px rgba(0, 0, 0, 0.1);
+  z-index: 1;
 }
+
 #opeka-app .dropdown-menu li {
   padding: 0.5em;
   cursor: pointer;
   background-color: #fff;
 }
+
 #opeka-app .dropdown-menu li:hover {
   background-color: #eee;
 }
+
 .chat-status-box {
   position: relative;
   background-color: #eee;
   max-width: 45em;
   margin-bottom: 1em;
 }
+
 .chat-status-box.placeholder {
   min-height: 8em;
 }
@@ -315,20 +393,25 @@ body[class^=" room-size-"] #page #main #content {
 .chat-status-box.placeholder .data {
   display: none;
 }
+
 .chat-status-box.chat-closed {
   background-color: #eee;
 }
+
 .chat-status-box.chat-open {
   background-color: #a5d888;
 }
+
 .chat-status-box.chat-busy {
   background-color: lightyellow;
 }
+
 .chat-status-box .chat-open,
 .chat-status-box .chat-closed,
 .chat-status-box .chat-busy {
   display: none;
 }
+
 .chat-status-box div.iconarea {
   padding: 1em;
   font-weight: bold;
@@ -336,12 +419,15 @@ body[class^=" room-size-"] #page #main #content {
   text-align: center;
   border-bottom: dashed 1px #fff;
 }
+
 .chat-status-box .description {
   padding: 2em 1em 1em;
 }
+
 .chat-status-box .hours {
   padding: 1em;
 }
+
 .chat-status-box .startbutton,
 .chat-status-box.chat-open .startbutton.disabled {
   border: 1px solid #bbb;
@@ -351,11 +437,13 @@ body[class^=" room-size-"] #page #main #content {
   color: gray;
   cursor: not-allowed;
 }
+
 .chat-status-box.chat-open .startbutton {
   cursor: pointer;
   background-color: #3b535f;
   color: #fff;
 }
+
 .chat-status-box h1 {
   background-color: inherit;
   color: black;
@@ -365,7 +453,6 @@ body[class^=" room-size-"] #page #main #content {
 }
 
 @media screen and (min-width: 35em) {
-    
   .chat-status-box {
     overflow: hidden;
   }
@@ -393,5 +480,4 @@ body[class^=" room-size-"] #page #main #content {
   #opeka-app .footer {
     padding: 1em 0 0;
   }
-    
 }

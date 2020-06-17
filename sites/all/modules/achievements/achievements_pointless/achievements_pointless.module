@@ -28,7 +28,7 @@ function achievements_pointless_menu_alter(&$items) {
  * Process variables for achievement.tpl.php.
  */
 function achievements_pointless_preprocess_achievement(&$variables) {
-  achievements_pointless_template_hide_variables(&$variables);
+  achievements_pointless_template_hide_variables($variables);
 }
 
 /**

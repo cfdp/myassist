@@ -8,6 +8,7 @@
 
 .answers-body-wrapper {
   clear: both;
+  margin-left: 0;
 
   .answers-body {
     .content {
@@ -33,6 +34,14 @@
 
 .node-answers-question .content {
   min-height: $u;
+  border: none;
+  padding: 0;
+  &:after {
+    border: none;
+  }
+  &:before {
+    border: none;
+  }
 }
 
 
@@ -108,28 +117,33 @@
   .marked-best-answer {
     display: block;
     float: right;
-    /*width: $u*2.5;*/
+    margin: 0;
   }
-  .marked-best-answer,
-  .flag {
-    @extend .icons;
-    display: inline-block;
-    vertical-align: middle;
-    background-image: url('../images/icons/checkmark2.svg');
-  }
-  .flag:hover,
-  .flag:active,
-  .marked-best-answer,
-  .unflag-action {
-    background-image: url('../images/icons/checkmark.svg');
-  }
-  .unflag-action:hover,
-  .unflag-action:active {
-    background-image: url('../images/icons/checkmark2.svg');
+  .answers-widgets .flag-wrapper {
+    .marked-best-answer,
+    .flag {
+      @extend .icons;
+      display: inline-block;
+      vertical-align: middle;
+      background-image: url('../images/icons/checkmark2.svg');
+    }
+    .flag-action:before {
+      content: '';
+    }
+    .flag:hover,
+    .flag:active,
+    .marked-best-answer,
+    .unflag-action {
+      background-image: url('../images/icons/checkmark.svg');
+    }
+    .unflag-action:hover,
+    .unflag-action:active {
+      background-image: url('../images/icons/checkmark2.svg');
+    }
   }
 }
 
-.node-answers-wrapper .rate-widget {
+.node-answers-wrapper .node-answers-answer .answers-widgets .rate-widget {
   float: left;
   display: block;
   width: auto;
@@ -145,12 +159,15 @@
     background-size: auto 66%;
   }
   .rate-number-up-down-rating {
+    font-family: $base-font-family;
     float: left;
     display: block;
     color: $smoke;
     font-size: $u;
     line-height: 1.2;
+    margin-top: 6px;
     padding: $u/1.5 0;
+    width: inherit;
   }
   .rate-number-up-down-btn-up:hover {
     background-position: center center;
@@ -166,11 +183,14 @@
 /************************************************************************************************/
 
 .answers-submitted {
+  border: none;
+  font-family: $base-font-family;
   padding-top: $u*0.5;
   .user-picture {
     float: left;
     width: $u*2.5;
     margin: 0;
+    padding: 0;
     a {
       display: block;
     }
@@ -184,10 +204,16 @@
   .author-details {
     padding: 0 0 0 $u*3;
     display: block;
+    font-weight: normal;
+    text-align: right;
+
+    p {
+      top: inherit;
+      transform: none;
+    }
   }
   .author-points {
     color: $smoke;
-    font-size: $u*0.8;
   }
   .username {
     overflow: hidden;
@@ -199,7 +225,6 @@
 .answer_count,
 .question_locked {
   color: $smoke;
-  font-size: $u*0.8;
   display: inline-block;
   padding-right: $u*0.25;
 }
@@ -227,6 +252,7 @@
 .answers-body-toolbar {
   font-size: $u*0.8;
   color: $smoke;
+  height: inherit;
   padding-top: $u;
 }
 .answers-body-toolbar a {
@@ -265,7 +291,7 @@
       font-weight: normal;
     }
     .comment-form {
-      padding: 1px $u 0; 
+      padding: 1px $u 0;
     }
   }
   .comment {
@@ -280,7 +306,7 @@
   display: none;
 }
 .author-is-current .answers-submitted img {
-  border: solid 1px $blue;
+  /*border: solid 1px $blue;*/
 }
 .author-role_debatraadgiver .answers-submitted img,
 .author-role_administrator .answers-submitted img{
@@ -302,12 +328,12 @@
     display: block;
     height: auto;
     float: right;
-    margin: 0 0 0 $u*0.3;
     height: auto;
     li {
       display: inline-block;
       height: auto;
       padding: 0;
+      margin: 0 0 0 $u*0.3;
     }
   }
 }
@@ -358,6 +384,9 @@
     background-color: $white;
     margin: $u;
     padding: $u;
+    .answers-body-wrapper {
+      border: none;
+    }
   }
   .submitted-time {
     border: none;
@@ -374,7 +403,8 @@
 
 .node-answers-answer {
   border: none;
-  .field-name-body .field-items .field-item p {
+  .field-name-body .field-items .field-item p,
+  div.field-name-body {
     display: block;
   }
 }
@@ -537,7 +567,6 @@
 
   p {
     margin: 0;
-    font-size: 0.8em;
   }
 
   img.gendericon {

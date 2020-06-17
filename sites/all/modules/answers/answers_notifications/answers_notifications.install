@@ -1,7 +1,8 @@
 <?php
+
 /**
  * @file
- * Install, update, and uninstall functions for the answers_notifications module.
+ * Notifications support for Answers.
  */
 
 /**
@@ -17,7 +18,7 @@ function answers_notifications_install() {
     if (!field_info_field($field['field_config']['field_name'])) {
       field_create_field($field['field_config']);
     }
-	// Check if our field instance is not already created.
+    // Check if our field instance is not already created.
     if (!field_info_instance($field['field_instance']['entity_type'], $field['field_instance']['field_name'], $field['field_instance']['bundle'])) {
       field_create_instance($field['field_instance']);
     }
@@ -50,7 +51,8 @@ function answers_notifications_uninstall() {
 function answers_notifications_default_fields() {
   $fields = array();
 
-  // Exported field: 'message-new_answer-field_answers_notifications_message_answer'.
+  // Exported field:
+  // 'message-new_answer-field_answers_notifications_message_answer'.
   $fields['message-new_answer-field_answers_notifications_message_answer'] = array(
     'field_config' => array(
       'active' => '1',
@@ -135,7 +137,8 @@ function answers_notifications_default_fields() {
     ),
   );
 
-  // Exported field: 'message-new_answer-field_answers_notifications_message_question'.
+  // Exported field:
+  // 'message-new_answer-field_answers_notifications_message_question'.
   $fields['message-new_answer-field_answers_notifications_message_question'] = array(
     'field_config' => array(
       'active' => '1',

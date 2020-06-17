@@ -9,11 +9,14 @@
  * The admin settings form for Queue Mail.
  */
 function queue_mail_settings_form() {
+  $queue_length = _queue_mail_get_queue()->numberOfItems();
 
   $form['queue_status'] = array(
     '#type' => 'item',
     '#title' => t('Queue status'),
-    '#markup' => format_plural(_queue_mail_get_queue()->numberOfItems(), '1 mail currently queued for sending.', '@count mails currently queued for sending.'),
+    '#markup' => $queue_length > 0 ? format_plural($queue_length,
+      '1 mail currently queued for sending.',
+      '@count mails currently queued for sending.') : t('Mail queue is empty'),
   );
 
   $form['queue_mail_send_on_cron'] = array(
@@ -26,7 +29,7 @@ function queue_mail_settings_form() {
   $form['queue_mail_keys'] = array(
     '#type' => 'textarea',
     '#title' => t('Mail IDs to queue'),
-    '#description' => t('Enter each mail ID to queue on a separate line. Use <strong>*</strong> to do a wildcard match.') .'<br/>'. t('Mail IDs are a combination of the first and second arguments sent to <em>drupal_mail</em> when a module sends an email. E.g. <em>user_mail</em>, <em>register_pending_approval_admin</em>') . '<br />' . t('For example, to queue all mails sent by the User module, enter: <em>user_*</em> above, to just queue password recovery emails enter: <em>user_password_reset</em>'),
+    '#description' => t('Enter each mail ID to queue on a separate line. Use <strong>*</strong> to do a wildcard match.') . '<br/>' . t('Mail IDs are a combination of the first and second arguments sent to <em>drupal_mail</em> when a module sends an email. E.g. <em>user_mail</em>, <em>register_pending_approval_admin</em>') . '<br />' . t('For example, to queue all mails sent by the User module, enter: <em>user_*</em> above, to just queue password recovery emails enter: <em>user_password_reset</em>'),
     '#default_value' => variable_get('queue_mail_keys', ''),
   );
 

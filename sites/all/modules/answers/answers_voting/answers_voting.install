@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Install, update, and uninstall functions for the answers module.
@@ -6,7 +7,7 @@
 
 /**
  * Implements hook_install().
- * 
+ *
  * Defines a default rate widget for questions and answers.
  */
 function answers_voting_install() {
@@ -44,11 +45,10 @@ function answers_voting_install() {
   variable_set('rate_widgets', $new_widgets);
 }
 
-
 /**
  * Implements hook_uninstall().
- * 
- * Removes the default rate widget. 
+ *
+ * Removes the default rate widget.
  */
 function answers_voting_uninstall() {
   $widgets = variable_get('rate_widgets', NULL);

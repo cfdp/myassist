@@ -7,9 +7,8 @@ core = 7.x
 
 stylesheets[all][] = css/answers-voting.css
 
-; Information added by Drupal.org packaging script on 2015-03-20
-version = "7.x-4.0-rc2"
+; Information added by Drupal.org packaging script on 2018-11-13
+version = "7.x-4.0-rc3"
 core = "7.x"
 project = "answers"
-datestamp = "1426887790"
-
+datestamp = "1542128884"

@@ -3,11 +3,10 @@ description = "Demonstrate the programming API for using the question lock funct
 core = "7.x"
 package = "Answers"
 php = "5.2.4"
-dependencies[] = "answers"
+dependencies[] = answers
 
-; Information added by Drupal.org packaging script on 2015-03-20
-version = "7.x-4.0-rc2"
+; Information added by Drupal.org packaging script on 2018-11-13
+version = "7.x-4.0-rc3"
 core = "7.x"
 project = "answers"
-datestamp = "1426887790"
-
+datestamp = "1542128884"

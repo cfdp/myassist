@@ -85,9 +85,19 @@ function friendly_register_load_resources() {
   drupal_add_css($path . '/css/friendly_register.css');
 }
 
+/**
+ * JSON callback to check the email address.
+ *
+ * @param $address
+ */
 function friendly_register_check_email($address) {
+  $email_is_valid = TRUE;
+  $all_email_checks = module_invoke_all('validate_email_address', $address);
+  foreach ($all_email_checks as $check) {
+    $email_is_valid = $check && $email_is_valid;
+  }
   // Check if it is a valid email address. No need to check if it is not
-  if (valid_email_address($address)) {
+  if ($email_is_valid) {
     drupal_json_output(_friendly_register_check_field('mail', $address));
   }
   else {
@@ -97,10 +107,44 @@ function friendly_register_check_email($address) {
   }
 }
 
-function friendly_register_check_user($username) {
-  drupal_json_output(_friendly_register_check_field('name', $username));
+/**
+ * Implements hook_validate_email_address().
+ *
+ * @param string $address
+ *
+ * @return bool
+ */
+function friendly_register_validate_email_address($address) {
+  return valid_email_address($address);
 }
 
+/**
+ * JSON callback to check the username.
+ *
+ * @param string $username
+ */
+function friendly_register_check_user($username) {
+  $user_is_valid = TRUE;
+  $all_user_checks = module_invoke_all('validate_user_name', $username);
+  foreach ($all_user_checks as $check) {
+    $user_is_valid = $check && $user_is_valid;
+  }
+  if ($user_is_valid) {
+    drupal_json_output(_friendly_register_check_field('name', $username));
+  }
+  else {
+    drupal_json_output(array('available' => 'invalid'));
+  }
+}
+
+/**
+ * Checks the value of a field on the user table.
+ *
+ * @param string $field_name
+ * @param string $value
+ *
+ * @return array
+ */
 function _friendly_register_check_field($field_name, $value) {
   if (_friendly_register_check_flood()) {
     $result = db_query("SELECT uid FROM {users} WHERE " . $field_name . " = :value", array(':value' => $value))->fetchField();
@@ -111,6 +155,11 @@ function _friendly_register_check_field($field_name, $value) {
   }
 }
 
+/**
+ * Checks to see if the user has too many requests (flood).
+ *
+ * @return bool
+ */
 function _friendly_register_check_flood() {
   if (user_access('ignore flood')) {
     return TRUE;
@@ -120,7 +169,7 @@ function _friendly_register_check_flood() {
     $q = 'SELECT hits FROM {friendly_register_flood} WHERE ip = :ip';
     $hits = db_query($q, array(':ip' => $ip))->fetchField();
     if ($hits == NULL) {
-      $id = db_insert('friendly_register_flood')
+      db_insert('friendly_register_flood')
         ->fields(array(
             'ip' => $ip,
             'hits' => 1,

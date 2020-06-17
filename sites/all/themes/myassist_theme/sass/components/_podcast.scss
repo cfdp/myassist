@@ -1,0 +1,19 @@
+.node-type-podcast {
+  .breadcrumb {
+    position: relative;
+    margin-bottom: .8em;
+  }
+  #main {
+    margin-top: $u;
+  }
+
+  /* Archive page */
+  .view-podcasts {
+    .views-row {
+      background: #e5e5e5 none repeat scroll 0 0;
+      padding: 0.5em;
+      margin-bottom: $u;
+    }
+
+  }
+}

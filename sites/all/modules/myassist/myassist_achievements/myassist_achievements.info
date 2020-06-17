@@ -2,6 +2,8 @@ name = MyAssist Achievements
 description = Achievements setup
 core = 7.x
 package = MyAssist
+
+dependencies[] = userpoints
 dependencies[] = achievements
 dependencies[] = achievements_rules
 dependencies[] = achievements_views

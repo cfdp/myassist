@@ -32,6 +32,12 @@ function features_drush_command() {
     ),
     'drupal dependencies' => array('features'),
     'aliases' => array('fl', 'features'),
+    'outputformat' => array(
+      'default' => 'table',
+      'pipe-format' => 'list',
+      'field-labels' => array('name' => 'Name', 'feature' => 'Feature', 'status' => 'Status', 'version' => 'Version', 'state' => 'State'),
+      'output-data-type' => 'format-table',
+    ),
   );
   $items['features-export'] = array(
     'description' => "Export a feature from your site into a module.",
@@ -138,6 +144,18 @@ function features_drush_command() {
     'aliases' => array('fd'),
   );
 
+  $items['features-diff-all'] = array(
+    'description' => "Show the code difference for all enabled features not in their default state.",
+    'arguments' => array(
+      'feature_exclude' => 'A space-delimited list of features to exclude from being reverted.',
+    ),
+    'options' => array(
+      'force' => "Bypass the confirmations. This is useful if you want to output all of the diffs to a log file.",
+    ),
+    'drupal dependencies' => array('features', 'diff'),
+    'aliases' => array('fda'),
+  );
+
   return $items;
 }
 
@@ -195,12 +213,12 @@ function drush_features_list() {
   }
 
   module_load_include('inc', 'features', 'features.export');
-  $rows = array(array(dt('Name'), dt('Feature'), dt('Status'), dt('Version'), dt('State')));
 
   // Sort the Features list before compiling the output.
   $features = features_get_features(NULL, TRUE);
   ksort($features);
 
+  $rows = array();
   foreach ($features as $k => $m) {
     switch (features_get_storage($m->name)) {
       case FEATURES_DEFAULT:
@@ -218,16 +236,19 @@ function drush_features_list() {
       ($m->status == 0 && ($status == 'all' || $status == 'disabled')) ||
       ($m->status == 1 && ($status == 'all' || $status == 'enabled'))
     ) {
-      $rows[] = array(
-        $m->info['name'],
-        $m->name,
-        $m->status ? dt('Enabled') : dt('Disabled'),
-        $m->info['version'],
-        $storage
+      $rows[$k] = array(
+        'name' => $m->info['name'],
+        'feature' => $m->name,
+        'status' => $m->status ? dt('Enabled') : dt('Disabled'),
+        'version' => $m->info['version'],
+        'state' => $storage
       );
     }
   }
-  drush_print_table($rows, TRUE);
+  if (version_compare(DRUSH_VERSION, '6.0', '<')) {
+    drush_print_table($rows, TRUE);
+  }
+  return $rows;
 }
 
 /**
@@ -297,7 +318,7 @@ function _drush_features_component_filter($all_components, $patterns = array(), 
   // First filter on exported state.
   foreach ($all_components as $source => $components) {
     foreach ($components as $name => $title) {
-      $exported = sizeof($components_map[$source][$name]) > 0;
+      $exported = !empty($components_map[$source][$name]);
       if ($exported) {
         if ($options['exported']) {
           $pool[$source][$name] = $title;
@@ -325,7 +346,13 @@ function _drush_features_component_filter($all_components, $patterns = array(), 
     // Rewrite * to %. Let users use both as wildcard.
     $pattern = strtr($pattern, array('*' => '%'));
     $sources = array();
-    list($source_pattern, $component_pattern) = explode(':', $pattern, 2);
+    if (strpos($pattern, ':') !== FALSE) {
+      list($source_pattern, $component_pattern) = explode(':', $pattern, 2);
+    }
+    else {
+      $source_pattern = $pattern;
+      $component_pattern = '';
+    }
     // If source is empty, use a pattern.
     if ($source_pattern == '') {
       $source_pattern = '%';
@@ -390,7 +417,7 @@ function _drush_features_component_filter($all_components, $patterns = array(), 
             return drush_set_error('', dt('Ambiguous component "!component", matches !matches', array('!component' => $component_pattern, '!matches' => join(', ', $matches))));
           }
         }
-        if (!is_array($selected[$source])) {
+        if (empty($selected[$source])) {
           $selected[$source] = array();
         }
         $selected[$source] += array_intersect_key($pool[$source], array_flip($matches));
@@ -411,7 +438,7 @@ function _drush_features_component_filter($all_components, $patterns = array(), 
   if ($options['provided by'] && $options['exported'] ) {
     foreach ($selected as $source => $components) {
       foreach ($components as $name => $title) {
-        $exported = sizeof($components_map[$source][$name]) > 0;
+        $exported = !empty($components_map[$source][$name]);
         if ($exported) {
           $provided_by[$source . ':' . $name] = join(', ', $components_map[$source][$name]);
         }
@@ -492,7 +519,7 @@ function drush_features_export() {
         drush_die('Aborting.');
       }
       $export = _drush_features_generate_export($items, $module);
-      _features_populate($items, $export[info], $export[name]);
+      _features_populate($items, $export['info'], $export['name']);
       _drush_features_export($export['info'], $module, $directory);
     }
   }
@@ -594,9 +621,40 @@ function _drush_features_export($info, $module_name = NULL, $directory = NULL) {
       drush_op('mkdir', $directory);
     }
     if (is_dir($directory)) {
+      // Ensure that the export will be created in the English language.
+      // The export language must be set before flushing caches as that can
+      // result into translatables being statically cached.
+      $language = _features_export_language();
+
       drupal_flush_all_caches();
       $export = _drush_features_generate_export($info, $module_name);
       $files = features_export_render($export, $module_name, TRUE);
+
+      // Restore the language
+      _features_export_language($language);
+
+      // Copy any files if _files key is there.
+      if (!empty($files['_files'])) {
+        foreach ($files['_files'] as $file_name => $file_info) {
+          // See if files are in a sub directory.
+          if (strpos($file_name, '/')) {
+            $file_directory = $directory . '/' . substr($file_name, 0, strrpos($file_name, '/'));
+            if (!is_dir($file_directory)) {
+              drush_op('mkdir', $file_directory);
+            }
+          }
+          if (!empty($file_info['file_path'])) {
+            drush_op('file_unmanaged_copy', $file_info['file_path'], "{$directory}/{$file_name}", FILE_EXISTS_REPLACE);
+          }
+          elseif (!empty($file_info['file_content'])) {
+            drush_op('file_put_contents', "{$directory}/{$file_name}", $file_info['file_content']);
+          }
+          else {
+            drush_log(dt("Entry for @file_name.in !module is invalid. ", array('!module' => $module_name, '@file_name' => $file_name)), 'ok');
+          }
+        }
+        unset($files['_files']);
+      }
       foreach ($files as $extension => $file_contents) {
         if (!in_array($extension, array('module', 'info'))) {
           $extension .= '.inc';
@@ -650,7 +708,7 @@ function _drush_features_generate_export(&$info, &$module_name) {
       }
       else {
         // Split version number parts.
-        $pattern = '/([0-9]-[a-z]+([0-9])+)/';
+        $pattern = '/([0-9]-[a-z]+([0-9]+))/';
         $matches = array();
         preg_match($pattern, $version_minor, $matches);
         $number = array_pop($matches);
@@ -762,7 +820,7 @@ function drush_features_revert() {
     }
   }
   else {
-    drush_features_list();
+    drush_print_table(drush_features_list());
     return;
   }
 }
@@ -816,7 +874,7 @@ function drush_features_revert_all() {
  */
 function drush_features_diff() {
   if (!$args = func_get_args()) {
-    drush_features_list();
+    drush_print_table(drush_features_list());
     return;
   }
   $module = $args[0];
@@ -896,6 +954,62 @@ function drush_features_diff() {
       }
       else {
         drush_print($row);
+      }
+    }
+  }
+}
+
+/**
+ * Diff all enabled features that are not in their default state.
+ *
+ * @param ...
+ *   (Optional) A list of features to exclude from being reverted.
+ */
+function drush_features_diff_all() {
+  module_load_include('inc', 'features', 'features.export');
+  $features_to_exclude = func_get_args();
+
+  $features_to_revert = array();
+  foreach (features_get_features(NULL, TRUE) as $module) {
+    if ($module->status && !in_array($module->name, $features_to_exclude)) {
+      switch (features_get_storage($module->name)) {
+        case FEATURES_OVERRIDDEN:
+        case FEATURES_NEEDS_REVIEW:
+        case FEATURES_REBUILDABLE:
+          $features_to_diff[] = $module->name;
+          break;
+      }
+    }
+  }
+
+  if ($features_to_diff) {
+
+    // Check if the user wants to apply the force option.
+    $force = drush_get_option('force');
+
+    if($force) {
+      foreach ($features_to_diff as $module) {
+
+        drush_print(dt('Diff for !module:', array('!module' => $module)));
+
+        drush_invoke_process(drush_sitealias_get_record('@self'), 'features-diff', array($module));
+      }
+    }
+    else {
+
+      drush_print(dt('A diff will be performed for the following modules: !modules',
+        array('!modules' => implode(', ', $features_to_diff))
+      ));
+
+      if (drush_confirm(dt('Do you want to continue?'))) {
+        foreach ($features_to_diff as $module) {
+          if (drush_confirm(dt('Diff !module?', array('!module' => $module)))) {
+            drush_invoke_process(drush_sitealias_get_record('@self'), 'features-diff', array($module));
+          }
+        }
+      }
+      else {
+        return drush_user_abort('Aborting.');
       }
     }
   }

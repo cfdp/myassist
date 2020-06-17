@@ -35,14 +35,30 @@ function myassist_theme_preprocess_maintenance_page(&$variables, $hook) {
  *   The name of the template being rendered ("html" in this case.)
  */
 function myassist_theme_preprocess_html(&$variables, $hook) {
-  // Add Facebook Pixel tracking code on all pages
-  $fb_markup = '<noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=686677638133594&ev=PageView&noscript=1"/></noscript>';
-  $fb_pixel = array(
-    '#type' => 'markup',
-    '#markup' => $fb_markup,
-  );
-  drupal_add_html_head($fb_pixel, 'fb_pixel');
-  drupal_add_js(drupal_get_path('theme', 'myassist_theme') . '/js/facebook_pixel_code.js');
+
+  // Add conditional scripts
+  if (!path_is_admin(current_path())) {
+    /* Add cookiebot script to head. */
+    $cookiebot_markup = '<script id="Cookiebot" src="https://consent.cookiebot.com/uc.js" data-cbid="4701a8cf-157e-4aa1-899c-83cff9f01318" type="text/javascript" data-blockingmode="auto"></script>';
+    $cookiebot = array(
+      '#type' => 'markup',
+      '#markup' => $cookiebot_markup,
+    );
+    drupal_add_html_head($cookiebot, 'cookiebot');
+    // Add Facebook Pixel tracking code on all pages
+    $fb_markup = '<noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=686677638133594&ev=PageView&noscript=1"/></noscript>';
+    $fb_pixel = array(
+      '#type' => 'markup',
+      '#markup' => $fb_markup,
+    );
+    drupal_add_html_head($fb_pixel, 'fb_pixel');
+    drupal_add_js(drupal_get_path('theme', 'myassist_theme') . '/js/facebook_pixel_code.js');
+
+    // Add questionnaire popup script and css. Popup markup is in block /admin/structure/block/manage/block/26/configure - @todo: needs testin
+    // drupal_add_css(drupal_get_path('theme', 'myassist_theme') . '/css/bpopup.css', array('group' => CSS_THEME, 'type' => 'file', 'weight' => 10));
+    // drupal_add_js(drupal_get_path('theme', 'myassist_theme') . '/js/jquery.bpopup.min.js', array('weight' => 0));
+    // drupal_add_js(drupal_get_path('theme', 'myassist_theme') . '/js/popup.js', array('weight' => 0));
+  }
 }
 
 /**
@@ -53,13 +69,81 @@ function myassist_theme_preprocess_html(&$variables, $hook) {
  * @param $hook
  *   The name of the template being rendered ("page" in this case.)
  */
-/*
+
 function myassist_theme_preprocess_page(&$variables, $hook) {
-  $variables['sample_variable'] = t('Lorem ipsum.');
-  dpm($variables, $hook);
-  //drupal_add_js(  );
+  myassist_theme_set_header_img_vars($variables);
+
+  $node = menu_get_object();
+  // Exit if we are not on a node
+  if (!isset($node)) {
+    return;
+  }
+  if (!empty($node->field_cta_button)) {
+    $field_cta_button = field_get_items('node', $node, 'field_cta_button');
+    $field_cta_link_path = '/node/' . $field_cta_button[0]['target_id'];
+
+    $field_cta_title = t('No title');
+    if (!empty($node->field_cta_button_title)) {
+      $field_cta_title = field_get_items('node', $node, 'field_cta_button_title');
+
+      $field_cta_title = $field_cta_title[0]['safe_value'];
+    }
+    $variables['cta_button_link'] = l($field_cta_title, $field_cta_link_path, 
+      array('attributes' => 
+        array('class' => 
+          array('cta-button')
+        )
+      )
+    );
+  }
 }
-*/
+
+/**
+ * Set header image related variables for templating 
+ *
+ * @param $variables
+ *   An array of variables to pass to the theme template.
+ */
+function myassist_theme_set_header_img_vars(&$variables) {
+  $node = menu_get_object();
+  // Exit if we are not on a node
+  if (!isset($node)) {
+    return;
+  }
+
+  $nid = $node->nid;
+
+  if (isset($node->field_podcast_archive)) {
+    $is_podcast_archive = ($node->field_podcast_archive && $node->field_podcast_archive['und'][0]['value'] == "1") ? true : false;
+  }
+
+  switch ($node->type) {
+    case 'podcast':
+      $variables['podcast_nid'] = $nid;
+      $variables['is_podcast_archive'] = $is_podcast_archive;
+
+      $node = node_load($nid);
+      $field = field_get_items('node', $node, 'field_podcast_subtitle');
+      $subtitle = field_view_value('node', $node, 'field_podcast_subtitle', $field[0]);
+      if ($subtitle['#markup'] !== "") {
+        $variables['header_img_subtitle'] = $subtitle['#markup'];
+      }
+      break;
+    case 'page':
+    case 'blog':
+      $node = node_load($nid);
+      $field = field_get_items('node', $node, 'field_header_img_subtitle');
+      $subtitle = field_view_value('node', $node, 'field_header_img_subtitle', $field[0]);
+      if ($subtitle['#markup'] !== "") {
+        $variables['header_img_subtitle'] = $subtitle['#markup'];
+      }
+      $variables['generic_header_img_nid'] = $nid;
+      break;
+    default:
+  }
+  /* Related to the header image on front page, pages og blogposts */
+
+}
 
 /**
  * Override or insert variables into the node templates.
@@ -73,7 +157,7 @@ function myassist_theme_preprocess_node(&$variables, $hook) {
   // Add GA conversion JS by node ID of the welcome page after user registration
   if (current_path() == 'node/561') {
     drupal_add_js(drupal_get_path('theme', 'myassist_theme') . '/js/GA_user_registration_conversion.js');
-    drupal_add_js('http://www.googleadservices.com/pagead/conversion.js', 'external');
+    drupal_add_js('https://www.googleadservices.com/pagead/conversion.js', 'external');
   }
 
   $node = $variables['node'];

@@ -148,15 +148,6 @@ class i18n_field_instance extends i18n_field_base {
       $properties[$this->get_textgroup()][$object['field_name']][$object['bundle']]['default_value']['string'] = $object['default_value'][0]['value'];
       $properties[$this->get_textgroup()][$object['field_name']][$object['bundle']]['default_value']['format'] = $format;
     }
-
-    // Don't show suffix and prefix for translation if not defined.
-    $translatable_settings = array('prefix', 'suffix');
-    foreach ($translatable_settings as $setting) {
-      if (empty($object['settings'][$setting])) {
-        unset($properties[$this->get_textgroup()][$object['field_name']][$object['bundle']][$setting]);
-      }
-    }
-
     return $properties;
   }
 

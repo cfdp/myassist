@@ -1,7 +1,0 @@
-<?php
-/**
- * @file
- * Code for the Debatrådgivere feature.
- */
-
-include_once 'debatr_dgivere.features.inc';

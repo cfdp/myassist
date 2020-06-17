@@ -422,10 +422,7 @@ function myassist_achievements_achievements_leaderboard_alter(&$leaderboard) {
         } else {
           $pos++;
         }*/
-        $ach = 0;
-        try {
-          $ach = $account->achievement_id;
-        } catch (Exception $e) {}
+        $ach = (isset($account->achievement_id)) ? $account->achievement_id : 0;
         if (!$ach) {
           $account->latest["#achievement"] = array();
           $no_achievements[] = $uid;
@@ -627,6 +624,10 @@ function myassist_achievements_block_info() {
   $blocks['userpoints'] = array(
     'info' => t('Current user points'),
   );
+  $blocks['myassist_achievements_lb_recent'] = array(
+      'info'  => t('myassist achievements leaderboard'),
+      'cache' => DRUPAL_NO_CACHE,
+  );
   return $blocks;
 }
 
@@ -654,8 +655,53 @@ function myassist_achievements_block_view($delta = '') {
           '#href' => "/user/$uid/points",
         );
       }
+      break;
+    case 'myassist_achievements_lb_recent':
+      include_once(drupal_get_path('module', 'myassist_achievements') . '/myassist_achievements.pages.inc');
+      $block['subject'] = t('Leaderboard, recent activity');
+
+      $block['content'] = array(
+        '#markup' => '<div id="load-leaderboard-lb-block">' . myassist_achievements_lb_table(30) . '</div>',
+        '#attached' => array(
+          'js' => array(
+            drupal_get_path('module', 'myassist_achievements') . '/js/myassist_achievements.js',
+          ),
+        ),
+      );
+      break;
   }
   return $block;
+}
+
+
+/**
+ * Implements hook_block_configure().
+ */
+function myassist_achievements_block_configure($delta = '') {
+  if ($delta == 'myassist_achievements_lb_recent') {
+    $form['myassist_achievements_lb_recent'] = array(
+      '#description'        => t('Enabling the recent leaderboard block will show the top achievers in a period of a week or month.'),
+      '#title'              => t('Leaderboard ranks during the last week or month'),
+      '#type'               => 'fieldset',
+    );
+    $form['myassist_achievements_lb_recent']['myassist_achievements_lb_recent_block_time_interval'] = array(
+      '#type'           => 'select',
+      '#title'          => t('The maximum time interval (days) that user points for this block should be saved'),
+      '#default_value'  => variable_get('myassist_achievements_lb_recent_time_interval', 30),
+      '#options'        => drupal_map_assoc(range(0, 30)),
+    );
+
+    return $form;
+  }
+}
+
+/**
+ * Implements hook_block_save().
+ */
+function myassist_achievements_block_save($delta = '', $edit = array()) {
+  if ($delta == 'myassist_achievements_lb_recent') { // bleh, this is wasteful code that should be automated.
+    variable_set('myassist_achievements_lb_recent_block_time_interval', $edit['myassist_achievements_lb_recent_block_time_interval']);
+  }
 }
 
 
@@ -663,7 +709,11 @@ function myassist_achievements_block_view($delta = '') {
 // Show a notification each time we gain points
 
 function myassist_achievements_register_points($uid, $txid) {
-  db_insert('myassist_pending_point_display')->fields(array('uid'=>$uid, 'txid'=>$txid))->execute();
+  db_insert('myassist_pending_point_display')
+    ->fields(array(
+      'uid'=>$uid,
+      'txid'=>$txid))
+    ->execute();
 }
 
 function myassist_achievements_page_alter(&$page) {
@@ -830,6 +880,29 @@ function myassist_achievements_copy_to_userpoints_table($uid, $addpoints, $reaso
 //------------------------------------------------------------------------------
 
 /**
+ * Implements hook_menu().
+ */
+function myassist_achievements_menu() {
+  $items['achievements/leaderboard_recent/%'] = array(
+    'title' => 'Get recent achievers',
+    'page callback' => 'myassist_achievements_ajax_get_lb_table',
+    'page arguments' => array(2),
+    'delivery callback' => 'ajax_deliver',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+    $items['achievements/leaderboard_recent/ajax/%'] = array(
+    'title' => 'Get recent achievers',
+    'page callback' => 'myassist_achievements_ajax_get_lb_table',
+    'page arguments' => array(2,3),
+    'delivery callback' => 'ajax_deliver',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+  return $items;
+}
+
+/**
  * Implements hook_menu_alter().
  */
 function myassist_achievements_menu_alter(&$items) {
@@ -838,6 +911,20 @@ function myassist_achievements_menu_alter(&$items) {
   $items['achievements/leaderboard/%achievements']['access callback'] = 1;
 }
 
+function myassist_achievements_ajax_get_lb_table($days, $ajax = NULL){
+  // Make sure Drupal Ajax framework javascript is around
+  drupal_add_library('system', 'drupal.ajax');
+  include_once(drupal_get_path('module', 'myassist_achievements') . '/myassist_achievements.pages.inc');
+  $table = myassist_achievements_lb_table($ajax, $days);
+  // Send the AJAX commands to the calling page.
+  $commands = array();
+  $commands[] = ajax_command_html('#load-leaderboard-lb-block', $table);
+
+  return array(
+    '#type' => 'ajax',
+    '#commands' => $commands,
+  );
+}
 
 //------------------------------------------------------------------------------
 
@@ -926,4 +1013,31 @@ function myassist_achievements_get_user_best_assist_ids($uid, $maxAge = null) {
                       AND flag_type.name = 'best_answer'
                       $timeReq", $data)->fetchCol();
   return $nids;
+}
+
+function myassist_achievements_image_default_styles() {
+  $styles = array();
+  $styles['leaderboard_thumb'] = array(
+    'label' => 'Leaderboard thumbnail (40x40)',
+    'effects' => array(
+      array(
+        'name' => 'image_scale',
+        'data' => array(
+          'width' => 40,
+          'upscale' => 1,
+        ),
+        'weight' => 0,
+      ),
+      array(
+        'name' => 'image_crop',
+        'data' => array(
+          'width' => 40,
+          'height' => 40,
+        ),
+        'weight' => 1,
+      ),
+    ),
+  );
+
+  return $styles;
 }

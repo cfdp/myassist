@@ -10,25 +10,30 @@
  *
  * @ingroup views_area_handlers
  */
-class views_handler_answers_count extends views_handler_area {
+class AnswersCountViewsHandler extends views_handler_area {
+
   /**
-   * Find out the information to render.
+   * Render the field.
+   *
+   * @param bool $empty
+   *   There is no values .
    */
-  function render($empty = FALSE) {
+  public function render($empty = FALSE) {
     $output = '';
     $count = count($this->view->result);
     $total = isset($this->view->total_rows) ? $this->view->total_rows : count($this->view->result);
 
     switch ($total) {
       case 0:
-        return t("No answers yet.");
+        return t("No Answers yet.");
 
       case 1:
-        return t("1 answer");
+        return t("1 Answer");
 
       default:
-        return $total . " " . t("answers");
+        return $total . " " . t("Answers");
 
     }
   }
+
 }

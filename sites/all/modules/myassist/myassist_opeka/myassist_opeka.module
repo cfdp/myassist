@@ -119,6 +119,8 @@ function myassist_opeka_page_build(&$page) {
     } else if (drupal_get_path_alias(current_path()) === 'chat') {
         add_chat_updates_ressources();
         drupal_add_js(array('drupal_logged_in' => $user->uid), "setting");
+        // js setting reflecting the chat access permissions of the current user
+        drupal_add_js(array('drupal_allow_chat_access' => user_access('access opeka chat')), "setting");
         drupal_add_js($module_path . '/js/chat-status-page.js', array('weight' => 20));
 
         $page['content']['myassist-opeka-templates'] = array(
@@ -243,8 +245,8 @@ function chat_ribbons_view() {
 
     global $user;
 
-    // Don't show chat-notifications for users that are not logged in
-    if(!$user->uid) {
+    // Don't show chat-notifications if current user doesn't have access permissions
+    if(!user_access('access opeka chat')) {
         return $block;
     }
 

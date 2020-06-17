@@ -1,11 +1,10 @@
 <?php
+
 /**
  * @file
- * Allow users to subscribe to questions and receive notifications when they get new answers
+ * Answers subscription and notification.
  *
- * @author bulat, chipcleary
- *
- * Based on https://drupal.org/node/1915692 
+ * Based on https://drupal.org/node/1915692
  */
 
 module_load_include('inc', 'answers_notifications', 'includes/answers_notifications.flag_default');
@@ -13,8 +12,8 @@ module_load_include('inc', 'answers_notifications', 'includes/answers_notificati
 
 /**
  * Implements hook_node_insert().
- * 
- * If it's a new answer, then we want to notify subscribers to the question it answers
+ *
+ * Notify subscribers of new answer.
  */
 function answers_notifications_node_insert($node) {
   if ($node->type == 'answers_answer') {
@@ -40,7 +39,7 @@ function answers_notifications_new_answer_notify($answer) {
 
 /**
  * Creates new message with given parameters.
- * 
+ *
  * @param string $type
  *   Type of the message.
  * @param int $uid
@@ -52,7 +51,7 @@ function answers_notifications_new_answer_notify($answer) {
  * @param array $uids
  *   User IDs array. It's used in case of a single recipient for the message.
  */
-function answers_notifications_create_message($type, $uid, $node, $fields = array(), $uids = array()) {
+function answers_notifications_create_message($type, $uid, $node, array $fields = array(), array $uids = array()) {
   // Create message.
   $message = message_create($type, array('uid' => $uid));
   $wrapper = entity_metadata_wrapper('message', $message);
@@ -69,7 +68,7 @@ function answers_notifications_create_message($type, $uid, $node, $fields = arra
       'save on fail' => FALSE,
       'save on success' => FALSE,
       'mid' => $message->mid,
-    )
+    ),
   );
   $subscribe_options = array(
     'save message' => FALSE,

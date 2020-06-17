@@ -1,7 +1,8 @@
 <?php
+
 /**
  * @file
- * answers_best_answer hooks.
+ * Answers_best_answer hooks.
  */
 
 /**
@@ -15,14 +16,11 @@
  *   The previous best answer for the question.
  */
 function hook_answers_best_answer_set($question, $answer, $old_answer = NULL) {
-  dpm("Best answer set:");
-  dpm($answer);
   if ($old_answer) {
-    dpm("Old best answer unset:");
-    dpm($old_answer);
+    // Old best answer unset.
   }
   else {
-    dpm("No old best answer to unset");
+    // No old best answer to unset.
   }
 }
 
@@ -35,6 +33,5 @@ function hook_answers_best_answer_set($question, $answer, $old_answer = NULL) {
  *   The previous best answer for the question.
  */
 function hook_answers_best_answer_unset($question, $old_answer) {
-  dpm("Best answer unset:");
-  dpm($old_answer);
+  // Best answer unset.
 }

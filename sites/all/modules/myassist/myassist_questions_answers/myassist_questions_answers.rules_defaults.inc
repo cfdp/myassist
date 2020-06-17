@@ -26,7 +26,7 @@ function myassist_questions_answers_default_rules_configuration() {
       "DO" : [
         { "myassist_notification_rules_process" : {
             "recipient" : [ "node:author" ],
-            "messageType" : "Du stemte p\\u00e5 et svar.",
+            "messageType" : "upvoted_answer",
             "node" : [ "node" ]
           }
         }
@@ -116,6 +116,33 @@ function myassist_questions_answers_default_rules_configuration() {
             "recipient" : [ "node:answers-related-question:author" ],
             "messageType" : "question_answered",
             "node" : [ "node:answers-related-question" ]
+          }
+        }
+      ]
+    }
+  }');
+  $items['myassist_questions_answers_email_op_on_assist_comment'] = entity_import('rules_config', '{ "myassist_questions_answers_email_op_on_assist_comment" : {
+      "LABEL" : "Email OP om kommentar p\\u00e5 assist",
+      "PLUGIN" : "reaction rule",
+      "OWNER" : "rules",
+      "TAGS" : [ "notify" ],
+      "REQUIRES" : [ "rules", "myassist_notification", "comment" ],
+      "ON" : { "comment_insert--comment_node_answers_answer" : { "bundle" : "comment_node_answers_answer" } },
+      "IF" : [
+        { "entity_has_field" : { "entity" : [ "comment:node" ], "field" : "answers_related_question" } },
+        { "data_is" : {
+            "data" : [
+              "comment:node:answers-related-question:author:field-mail-on-receive-comment"
+            ],
+            "value" : "1"
+          }
+        }
+      ],
+      "DO" : [
+        { "myassist_notification_rules_process" : {
+            "recipient" : [ "comment:node:answers-related-question:author" ],
+            "messageType" : "comment_created",
+            "node" : [ "comment:node" ]
           }
         }
       ]
@@ -412,7 +439,7 @@ function myassist_questions_answers_default_rules_configuration() {
         { "mail_to_users_of_role" : {
             "roles" : { "value" : { "10" : "10" } },
             "subject" : "Nyt indhold p\\u00e5 MitAssist",
-            "message" : "Hey\\r\\n\\r\\n[node:author] har postet sp\\u00f8rgsm\\u00e5let \\u0022[node:title]\\u0022\\r\\n\\r\\nSe sp\\u00f8rgsm\\u00e5let her:\\r\\n\\r\\n[node:body]\\r\\n\\r\\nKan du give et assist, s\\u00e5 g\\u00e5 til [node:url]"
+            "message" : "Hey\\r\\n\\r\\nDer er sket ny aktivitet i tr\\u00e5den her \\r\\n\\u0022[node:title]\\u0022 \\r\\n[node:body]\\r\\n\\r\\nG\\u00e5 til [node:url]"
           }
         }
       ]
@@ -497,7 +524,7 @@ function myassist_questions_answers_default_rules_configuration() {
             "language" : [ "" ]
           }
         },
-        { "drupal_message" : { "message" : "Tak fordi du oprettede et sp\\u00f8rgsm\\u00e5l. Vi har sendt en besked til [node:field-advisor:name]." } },
+        { "drupal_message" : { "message" : "Tak fordi du oprettede et sp\\u00f8rgsm\\u00e5l.\\r\\nHvis du har valgt at sp\\u00f8rge en coach, har coachen nu f\\u00e5et direkte besked." } },
         { "mail_to_users_of_role_with_field" : {
             "roles" : { "value" : { "8" : "8" } },
             "subject" : "[site:name] - En anden bruger har brug for et assist.",

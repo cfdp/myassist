@@ -201,7 +201,7 @@
           }
 
           if (!$locked && $view_mode !== 'user_activity_list_entry') {
-            print '<a id="answers-btn-answer" class="answers-btn-primary btn" href="' . $node_url . '#new-answer-form">' . t("Answer"). '</a>';
+            print '<a id="answers-btn-answer" class="answers-btn-primary btn" href="' . $node_url_answer . '">' . t("Answer") . '</a>';
           }
         ?>
 

@@ -1,0 +1,27 @@
+#sliding-popup .popup-content #popup-buttons button {
+  cursor: pointer;
+  display: inline;
+  margin-right: 5px;
+  margin-top: 1em;
+  vertical-align: middle;
+  overflow: visible;
+  width: auto;
+  @include box-shadow(none);
+  background-image: none;
+  background-color: $blue;
+  @include border-radius(0.25em);
+  border: none;
+  display: inline-block;
+  color: #fff;
+  padding: 4px 8px;
+  text-decoration: none;
+  text-shadow: none;
+  font-family: $font;
+  font-size: $base-font-size;
+  font-weight: normal;
+  &:hover,
+  &:focus {
+    background-color: lighten($blue, 10%);
+    background-image: none;
+  }
+}

@@ -6,7 +6,7 @@
   Drupal.friendly_register.timeout = null;
 
   Drupal.friendly_register.checkUserName = function (userName) {
-    $.getJSON(userName.ajaxPath + userName.oldValue, function(data) {
+    $.getJSON(userName.ajaxPath + encodeURIComponent(userName.oldValue), function(data) {
       if (!data.flood) {
         var message;
         var cssclass;
@@ -19,6 +19,7 @@
         }
         $('#edit-name-check').remove();
         userName.field.after('<div id="edit-name-check" class="' + cssclass + '"><span class="text">' + message + '</span></div>');
+        Drupal.attachBehaviors();
       } else {
         Drupal.friendly_register.flood = true;
         $('#edit-name-check').remove();
@@ -28,7 +29,7 @@
   };
 
   Drupal.friendly_register.checkEmail = function (email) {
-    $.getJSON(email.ajaxPath + email.oldValue, function(data) {
+    $.getJSON(email.ajaxPath + encodeURIComponent(email.oldValue), function(data) {
       if (!data.flood) {
         if (data.available == 'incomplete') {
           $('#edit-mail-check').remove();
@@ -44,6 +45,7 @@
         }
         $('#edit-mail-check').remove();
         email.field.after('<div id="edit-mail-check" class="' + cssclass + '"><span class="text">' + message + '</span></div>');
+        Drupal.attachBehaviors();
       } else {
         Drupal.friendly_register.flood = true;
         $('#edit-mail-check').remove();
@@ -71,7 +73,7 @@
       email.avail = Drupal.t('This email address has not been used.');
       email.notAvail = Drupal.t('This email address is already in use, please <a href="@login">try logging in</a> with that email address or <a href="@reset">resetting your password</a>.', {'@login': loginURL, '@reset': resetURL});
 
-      userName.field.focus(function () {
+      userName.field.once('friendly-register').focus(function () {
         if (Drupal.friendly_register.flood) {
           return;
         }
@@ -92,7 +94,7 @@
         }
       });
 
-      email.field.focus(function () {
+      email.field.once('friendly-register').focus(function () {
         if (Drupal.friendly_register.flood) {
           return;
         }

@@ -2,38 +2,41 @@
 
 /**
  * @file
- * Question locking functions for the 'Answers' module
+ * Question locking functions for the 'Answers' module.
  *
- * The Answers module allow questions to be "locked". This means that users are no longer permitted to
- * provide new answers. Users may still comment on and edit answers (and, depending on how permissions
- * are set, users may comment on and edit questions).
+ * The Answers module allow questions to be "locked". This means that users are
+ * no longer permitted to provide new answers. Users may still comment on and
+ * edit answers (and, depending on how permissions are set, users may comment on
+ * and edit questions).
  *
- * Other modules may want to change their behavior based on whether a question is locked. For exmaple, 
- * the best answer module does not permit question authors to set or change best answers for locked questions.
+ * Other modules may want to change their behavior based on whether a question
+ * is locked. For exmaple, the best answer module does not permit question
+ * authors to set or change best answers for locked questions.
  *
- * The logic about *when* to lock or unlock questions is set by other modules. The answers module 
- * (and this file) only provides  the API. When several modules are using locks, the rule for combining
- * results is that if *any* module wants a question locked, then it is locked.
+ * The logic about *when* to lock or unlock questions is set by other modules.
+ * The answers module (and this file) only provides  the API. When several
+ * modules are using locks, the rule for combining results is that if *any*
+ * module wants a question locked, then it is locked.
  *
  * Users who have the "manage answers content" permission are not impacted by
- * question locks. The can still add answers and change best answers. Site administrators may wish
- * to give this permission to content editors.
- * 
+ * question locks. The can still add answers and change best answers. Site
+ * administrators may wish to give this permission to content editors.
+ *
  * To support locking, this file provides a hook and some utility functions.
  *
  * The hook:
- *   - hook_answers_lock_info(): Modules that want to lock or unlock questions define this hook. 
+ *   - hook_answers_lock_info(): Modules that want to lock or unlock questions
+ *     define this hook.
  *     It should return TRUE if the module will participate in locking.
  *
  * The utility functions:
- *    - answers_question_lock_set($question, $module): Lock a specific question
- *    - answers_question_lock_unset($question, $module): Unlock a specific question
- *    - answers_question_locked_p($question): Returns non-null if question is locked
- *
- * @author Chip Cleary
+ *    - answers_question_lock_set($question, $module):
+ *        Lock a specific question
+ *    - answers_question_lock_unset($question, $module):
+ *        Unlock a specific question
+ *    - answers_question_locked_p($question):
+ *        Returns non-null if question is locked
  */
-
-module_load_include('inc', 'answers', 'includes/answers.field_utils');
 
 /**
  * Determine which modules have a stake in locking questions.
@@ -76,7 +79,7 @@ function answers_reset_lock_info() {
  * @param object $question
  *   A fully loaded question node.
  * @param string $module
- *   The module setting the lock
+ *   The module setting the lock.
  */
 function answers_question_lock_set($question, $module) {
   if (in_array($module, answers_locking_modules())) {
@@ -99,19 +102,21 @@ function answers_question_lock_set($question, $module) {
  * @param object $question
  *   A fully loaded question node.
  * @param string $module
- *   The module that set the lock
+ *   The module that set the lock.
  */
 function answers_question_lock_unset($question, $module) {
   if (in_array($module, answers_locking_modules())) {
     $items = field_get_items('node', $question, 'question_locks');
-
     // If the question is locked by this module, unset the lock.
     if ($items && ($delta = array_search(array('value' => $module), $items) !== FALSE)) {
       $lang = field_language('node', $question, 'question_locks');
       $count = count($items);
+
+      // Copy elements of lock array down.
       for ($i = $delta; $i < $count - 1; $i++) {
         $question->question_locks[$lang][$i] = $question->question_locks[$lang][$i + 1];
       }
+      // Delete last element of lock array.
       unset($question->question_locks[$lang][$count - 1]);
       node_save($question);
     }

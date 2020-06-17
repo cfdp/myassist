@@ -50,6 +50,9 @@
  *     Compatible with 'secret' (i.e., if another user has unlocked an
  *     invisible achievement, a user who has not unlocked it will see the
  *     placeholder secret text instead of the actual achievement itself).
+ *   - manual-only: (optional) Set this to TRUE if the achievement has no
+ *     automated way of being granted--meaning only a user with the `grant manual
+ *     achievements` can grant the achievement (or take it away).
  *
  *   Achievements can also be categorized into groups. Groups are simply
  *   arrays whose keys are internal group IDs and whose values identify
@@ -72,7 +75,7 @@ function hook_achievements_info() {
       'storage'     => 'comment-count',
       'points'      => 100,
       'images' => array(
-        'unlocked'  => '/sites/default/files/example1.png',
+        'unlocked'  => 'sites/default/files/example1.png',
         // 'secret' and 'locked' will use the defaults.
       ),
     ),
@@ -89,9 +92,9 @@ function hook_achievements_info() {
           'description' => t("Go back to bed: it's still the weekend!"),
           'points'      => 5,
           'images' => array(
-            'unlocked'  => '/sites/default/files/example1.png',
-            'locked'    => '/sites/default/files/example2.png',
-            'secret'    => '/sites/default/files/example3.png',
+            'unlocked'  => 'sites/default/files/example1.png',
+            'locked'    => 'sites/default/files/example2.png',
+            'secret'    => 'sites/default/files/example3.png',
             // all default images have been replaced.
           ),
         ),
@@ -270,7 +273,7 @@ function example_query_alter(QueryAlterableInterface $query) {
  */
 function example_achievements_access_earn($uid) {
   $account = user_load($uid);
-  if ($account->name == 'Morbus Iff') {
+  if (format_username($account) == 'Morbus Iff') {
     // always, mastah, alllwayyYAYsss.
     return TRUE;
   }

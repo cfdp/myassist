@@ -1,7 +1,8 @@
 <?php
+
 /**
  * @file
- * hooks for messages in answers_notifications.
+ * Hooks for messages in answers_notifications.
  */
 
 /**

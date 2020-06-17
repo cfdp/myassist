@@ -19,6 +19,7 @@
  */
 ?>
 <div class="<?php print $classes; ?>">
+  <?php print render($title_suffix); ?>
   <div class="achievement-image"><?php print render($image); ?></div>
 
   <div class="achievement-points-box">

@@ -4,6 +4,8 @@
  * Code for the MyAssist Questions/Answers feature.
  */
 
+define('ANSWER_PATH_LOGIN_PAGE', 'user/login-to-answer');
+
 include_once 'myassist_questions_answers.features.inc';
 include_once 'myassist_questions_answers_views_handler_answers_count.inc';
 include_once 'myassist_questions_answers_views_handler_latest_activity.inc';
@@ -144,6 +146,13 @@ function myassist_questions_answers_menu() {
     'page callback' => 'myassist_questions_answers_lock',
     'page arguments' => array(1,true),
   );
+  $items[ANSWER_PATH_LOGIN_PAGE] = array(
+    'title' => 'Log in',
+    'page callback' => 'myassist_questions_answers_answer_to_login_page',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+
   return $items;
 }
 
@@ -180,6 +189,18 @@ function myassist_questions_answers_lock($nid, $unlock=false) {
   }
   drupal_goto("/node/$nid");
   return false;
+}
+
+/**
+ * Redirects anonymous users that want to answer a question to login page.
+ */
+function myassist_questions_answers_answer_to_login_page() {
+  drupal_set_message(t('You must login before you can answer a question.'), 'status', FALSE);
+
+  drupal_set_title(t('Log in'));
+
+  module_load_include('inc', 'user', 'user.pages');
+  return user_page();
 }
 
 function myassist_questions_answers_form_alter(&$form, $form_state, $form_id) {
@@ -243,4 +264,36 @@ function myassist_questions_answers_uf_open_to_posts() {
     $open = false;
   }
   return $open;
+}
+
+/**
+ * Implements hook_preprocess_HOOK().
+ */
+function myassist_questions_answers_preprocess_node(&$variables) {
+  $variables['locked'] = (isset($variables['locked']) ? $variables['locked'] : NULL);
+  if ($variables['type'] == 'answers_question' && !$variables['locked'] && $variables['view_mode'] !== 'user_activity_list_entry') {
+    $node_uri = node_uri($variables['node']);
+    // Redirect anonymous users to the login page.
+    if (user_is_anonymous()) {
+      $variables['node_url_answer'] = url(
+        ANSWER_PATH_LOGIN_PAGE,
+        array(
+          'query' => array(
+            'destination' => $node_uri['path'] . '#new-answer-form',
+          ),
+        )
+      );
+    }
+    // Add a #fragment to direct logged users to the answer form inside
+    // the page.
+    else {
+      $variables['node_url_answer'] = url(
+        $node_uri['path'],
+        array(
+          'fragment' => 'new-answer-form',
+          'absolute' => TRUE,
+        )
+      );
+    }
+  }
 }

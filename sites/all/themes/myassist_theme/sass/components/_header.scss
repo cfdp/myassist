@@ -64,6 +64,19 @@
   }
 }
 
+a.cta-button {
+  padding: .5em 1em;
+  position: relative;
+  background-color: rgba(0,0,0,0.5);
+  display: block;
+  border: 1px solid white;
+  font-weight: bold;
+  color: white;
+  margin-top: 10px;
+  font-size: 1.1em;
+  z-index: 2;
+}
+
 /* User menu and search */
 #block-search-form,
 #block-system-user-menu {

@@ -15,9 +15,8 @@ core = 7.x
 project = "voting_rules"
 datestamp = "1280223313"
 
-; Information added by drupal.org packaging script on 2011-07-15
-version = "7.x-1.0-alpha1"
+; Information added by Drupal.org packaging script on 2018-11-18
+version = "7.x-1.0-alpha2"
 core = "7.x"
 project = "voting_rules"
-datestamp = "1310711220"
-
+datestamp = "1542554886"

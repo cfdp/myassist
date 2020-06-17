@@ -83,39 +83,38 @@
 // Remove the "Add new comment" link on the teaser page or if the comment
 // form is being displayed on the same page.
 if ($teaser || !empty($content['comments']['comment_form'])) :
-  unset($content['links']['comment']['#links']['comment-add']);
+    unset($content['links']['comment']['#links']['comment-add']);
 endif;
 ?>
 <div class="node-answers-wrapper">
   <div id="node-<?php print $node->nid; ?>" class="<?php print $classes; ?> clearfix" <?php print $attributes; ?>>
 
     <?php print render($title_prefix); ?>
-    <?php if (!$page): ?>
+    <?php if (!$page) : ?>
       <h2<?php print $title_attributes; ?>>
         <a href="<?php print $node_url; ?>"><?php print $title; ?></a>
       </h2>
     <?php endif; ?>
     <?php print render($title_suffix); ?>
 
-    <?php if ($display_submitted): ?>
+    <?php if ($display_submitted) : ?>
     <div class="meta submitted">
     <?php print $user_picture; ?>
     <?php print $submitted; ?>
     </div>
     <?php endif;?>
-    
+
     <div class="answer-wrapper">
       <div class="answer-widgets">
-      <?php
-      if(isset($content['answersRateWidget'])):
-        print render($content['answersRateWidget']);
-      endif;
-      ?>
-      <?php
-      if(isset($content['best_answer'])):
-        print render($content['best_answer']);
-      endif;
-      ?>
+        <?php
+        if (isset($content['answersRateWidget'])) :
+            print render($content['answersRateWidget']);
+        endif;
+
+        if (isset($content['best_answer'])) :
+            print render($content['best_answer']);
+        endif;
+        ?>
       </div>
       <div class="answer-body">
         <div class="content clearfix" <?php print $content_attributes; ?>>
@@ -129,30 +128,30 @@ endif;
         print render($content);
         ?>
         </div>
-  
+
         <?php
         $links = render($content['links']);
-        if ($links):
+        if ($links) :
         ?>
         <div class="link-wrapper">
         <?php print $links; ?>
         </div>
         <?php endif; ?>
-  
+
         <?php print render($content['comments']); ?>
       </div>
-    </div>  
+    </div>
   </div>
 
-  <?php if(isset($content['answers_list'])): ?>
+    <?php if (isset($content['answers_list'])) : ?>
     <div class="answers-list">
-      <?php print render($content['answers_list']); ?>
+        <?php print render($content['answers_list']); ?>
     </div>
-  <?php endif;?>
-  
-  <?php if(isset($content['new_answer_form'])): ?>
+    <?php endif;?>
+
+    <?php if (isset($content['new_answer_form'])) : ?>
     <div class="new-answer-form">
-      <?php print render($content['new_answer_form']); ?>
+        <?php print render($content['new_answer_form']); ?>
     </div>
-  <?php endif;?>
+    <?php endif;?>
 </div>

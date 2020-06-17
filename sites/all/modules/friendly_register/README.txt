@@ -16,9 +16,17 @@ links to the login or reset password pages.
 
 Installation
 ------------
-* Install this module into the appropriate modules directory.
-* Enable this module.
+* Install this module into the appropriate modules directory and enable it.
+  See: https://drupal.org/node/895232 for more information.
 * Make sure you have cron running on a regular basis (at least once per 24 hours)
+
+Verification
+------------
+* On your site, log out.
+* Try to create an account using a pre-existing user name or email address.
+* If the module is working, an immediate error message should appear below that
+  field stating either the user name is unavailable or that the email is
+  already registered.
 
 Permissions
 -----------

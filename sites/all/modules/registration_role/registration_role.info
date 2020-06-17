@@ -4,9 +4,9 @@ package = "Registration"
 core = "7.x"
 configure = admin/config/people/registration_role
 
-; Information added by Drupal.org packaging script on 2015-06-12
-version = "7.x-1.1"
+; Information added by Drupal.org packaging script on 2017-07-06
+version = "7.x-1.2"
 core = "7.x"
 project = "registration_role"
-datestamp = "1434110884"
+datestamp = "1499345045"
 

@@ -64,11 +64,11 @@ function myassist_user_rules_action_mail_to_users_of_role_and_field($roles, $sub
 
   // All authenticated users, which is everybody.
   if (in_array(DRUPAL_AUTHENTICATED_RID, $roles)) {
-    $query = 'SELECT mail FROM {users} ' . $fieldJoin . ' WHERE uid > 0 AND ' . $fieldWhere;
+    $query = 'SELECT mail, uid FROM {users} ' . $fieldJoin . ' WHERE uid > 0 AND ' . $fieldWhere;
   }
   else {
     // Avoid sending emails to members of two or more target role groups.
-    $query = 'SELECT DISTINCT u.mail FROM {users} u INNER JOIN {users_roles} r ON u.uid = r.uid ' . $fieldJoin . ' WHERE r.rid IN (' . implode(',', $roles) . ') AND ' . $fieldWhere;
+    $query = 'SELECT DISTINCT u.mail, u.uid FROM {users} u INNER JOIN {users_roles} r ON u.uid = r.uid ' . $fieldJoin . ' WHERE r.rid IN (' . implode(',', $roles) . ') AND ' . $fieldWhere;
   }
 
   try {
@@ -82,12 +82,16 @@ function myassist_user_rules_action_mail_to_users_of_role_and_field($roles, $sub
     'subject' => $subject,
     'message' => $message,
   );
+  global $base_url;
+  $params['footer'] = '<p>Frameld notifikationer som denne: ' . $base_url . '/user/insertuidhere/edit</p>';
+  $params['message'] .= $params['footer'];
   // Set a unique key for this mail.
   $name = isset($element->root()->name) ? $element->root()->name : 'unnamed';
   $key = 'rules_action_mail_to_users_of_role_' . $name . '_' . $element->elementId();  $languages = language_list();
-
   $message = array('result' => TRUE);
   foreach ($result as $row) {
+    $uid = $row->uid;
+    $params['message'] = preg_replace('~(/user/)(insertuidhere)?(\d+)?(/edit)~i', '${1}'.$uid.'${4}', $params['message']);
     $message = drupal_mail('rules', $key, $row->mail, language_default(), $params, $from);
     // If $message['result'] is FALSE, then it's likely that email sending is
     // failing at the moment, and we should just abort sending any more. If

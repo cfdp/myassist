@@ -1,9 +1,13 @@
 <?php
-// $Id$
 
 /**
  * @file
- * Provides Rules intregration for the Voting API module
+ * Voting Rules module.
+ */
+
+/**
+ * @file
+ * Provides Rules intregration for the Voting API module.
  */
 
 /**
@@ -20,16 +24,19 @@ function voting_rules_votingapi_delete($votes) {
   _voting_rules_votingapi_op($votes, 'delete');
 }
 
+/**
+ * Wrapper for hook_votingapi_insert() and hook_votingapi_delete().
+ */
 function _voting_rules_votingapi_op($votes, $op) {
   foreach ($votes as $vote) {
     $entity = voting_rules_load_entity($vote['entity_type'], $vote['entity_id']);
 
     if ($entity) {
       if (in_array($vote['entity_type'], array_keys(voting_rules_get_types()))) {
-      	rules_invoke_event('voting_rules_' . $op . '_' . $vote['entity_type'], $vote, $entity);
+        rules_invoke_event('voting_rules_' . $op . '_' . $vote['entity_type'], $vote, $entity);
       }
       else {
-      	rules_invoke_event('voting_rules_' . $op . '_entity', $vote, $entity);
+        rules_invoke_event('voting_rules_' . $op . '_entity', $vote, entity_metadata_wrapper($vote['entity_type'], $entity));
       }
     }
   }
@@ -39,11 +46,14 @@ function _voting_rules_votingapi_op($votes, $op) {
  * Implements hook_votingapi_results().
  */
 function voting_rules_votingapi_results($cached, $entity_type, $entity_id) {
+
+  $vote_results = array();
   $entity = voting_rules_load_entity($entity_type, $entity_id);
+
   foreach ($cached as $result) {
     $vote_results[$result['function']] = $result;
   }
-  
+
   if ($entity) {
     rules_invoke_event('voting_rules_results_' . $entity_type, $vote_results, $entity);
   }
@@ -51,8 +61,8 @@ function voting_rules_votingapi_results($cached, $entity_type, $entity_id) {
 
 /**
  * Helper function that loads content of the specified type. Since Voting API is
- * built to support client defined content types, while Rules requires content 
- * types to be pre-defined, we use this helper function to encapsulate the 
+ * built to support client defined content types, while Rules requires content
+ * types to be pre-defined, we use this helper function to encapsulate the
  * loading of new content based on supported types (currently nodes, users, and
  * comments) and the entity API for unknown entities.
  *
@@ -73,10 +83,10 @@ function voting_rules_load_entity($entity_type, $entity_id) {
       return comment_load($entity_id);
 
     default:
-    	$entity_key = voting_rules_get_entity_key($entity_type);
-    	$entities = entity_load($entity_type, array($entity_id));
-    	$entity = reset($entities);
-    	return $entity;
+      $entity_key = voting_rules_get_entity_key($entity_type);
+      $entities = entity_load($entity_type, array($entity_id));
+      $entity = reset($entities);
+      return $entity;
   }
 }
 
@@ -87,9 +97,13 @@ function voting_rules_load_entity($entity_type, $entity_id) {
  *   A keyed array of entity types.
  */
 function voting_rules_get_types() {
-  $types = array('node' => t('Node'), 'user' => t('User'), 'comment' => t('Comment'), 'entity' => t('Entity'));
-	drupal_alter('voting_rules_types', $types);
-	return $types;
+  $types = array(
+    'node' => t('Node'),
+    'user' => t('User'),
+    'comment' => t('Comment'),
+  );
+  drupal_alter('voting_rules_types', $types);
+  return $types;
 }
 
 /**
@@ -110,8 +124,8 @@ function voting_rules_get_entity_key($entity_type) {
       return 'cid';
 
     default:
-    	$entity_info = entity_get_info($entity_type);
-    	return $entity_info['entity keys']['id'];
+      $entity_info = entity_get_info($entity_type);
+      return $entity_info['entity keys']['id'];
   }
 }
 
@@ -124,7 +138,7 @@ function voting_rules_get_property($data, array $options, $name, $entity_type) {
       return user_load($data['uid']);
 
     case 'entity':
-    	return voting_rules_load_entity($data['entity_type'], $data['entity_id']);
+      return voting_rules_load_entity($data['entity_type'], $data['entity_id']);
   }
 }
 
@@ -136,7 +150,7 @@ function voting_rules_get_votes($entity, array $options, $name, $entity_type) {
 
   $votes = votingapi_select_votes(array(
     'entity_id' => $entity->$entity_key,
-    'entity_type' => $entity_type
+    'entity_type' => $entity_type,
   ));
 
   return $votes;
@@ -151,7 +165,7 @@ function voting_rules_get_vote_results($entity, array $options, $name, $entity_t
 
   $select_results = votingapi_select_results(array(
     'entity_id' => $entity->$entity_key,
-    'entity_type' => $entity_type
+    'entity_type' => $entity_type,
   ));
 
   foreach ($select_results as $select_result) {

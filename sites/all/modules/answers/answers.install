@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Install, update, and uninstall functions for the answers module.
@@ -7,7 +8,7 @@
 /**
  * Implements hook_install().
  *
- * Defines question and answer content types and entityreference field to relate 
+ * Defines question and answer content types and entityreference field to relate
  * each answer with its question.
  */
 function answers_install() {
@@ -18,7 +19,7 @@ function answers_install() {
   $types = node_type_get_types();
 
   // Set up the answers_question node type.
-  node_add_body_field($types['answers_question'], $t('Question Description'));
+  node_add_body_field($types['answers_question'], $t('Body'));
   $body_instance = field_info_instance('node', 'body', 'answers_question');
   $body_instance['display']['answers_full_node']['label'] = 'hidden';
   $body_instance['settings']['display_summary'] = 0;
@@ -36,8 +37,13 @@ function answers_install() {
   }
 
   // Set up the answers_answer node type.
-  node_add_body_field($types['answers_answer'], $t('Answer Description'));
+  node_add_body_field($types['answers_answer'], $t('Body'));
   $body_instance = field_info_instance('node', 'body', 'answers_answer');
+  $body_instance['display']['default'] = array(
+    'label' => 'hidden',
+    'type' => 'text_default',
+    'module' => 'text',
+  );
   $body_instance['display']['answers_full_node'] = array(
     'label' => 'hidden',
     'type' => 'text_default',
@@ -58,6 +64,9 @@ function answers_install() {
     field_create_instance($instance);
   }
 
+  field_cache_clear();
+  _answers_enable_permissions();
+
   // TODO: extract comment and the rest of vars.
   variable_set('node_preview_answers_question', 0);
   variable_set('node_options_answers_question', array('status'));
@@ -76,20 +85,45 @@ function answers_install() {
   variable_set('comment_subject_field_answers_answer', 0);
 }
 
- /**
-  * Implements hook_enable().
-  */
-function answers_enable() {
-//  $permissions = array('create answers_question content', 'create answers_answer content');
-//  user_role_grant_permissions(DRUPAL_AUTHENTICATED_RID, $permissions);
-//  drupal_set_message(t('Answers: Allowing authenticated users to ask new questions and provide new answers.'));
+/**
+ * Enable answers default permissions.
+ */
+function _answers_enable_permissions() {
+  $role_perm = array(
+    'authenticated user' => array(
+      'create answers_question content',
+      'edit own answers_question content',
+      'create answers_answer content',
+      'edit own answers_answer content',
+    ),
+    'administrator' => array(
+      'create answers_question content',
+      'edit own answers_question content',
+      'edit any answers_question content',
+      'delete own answers_question content',
+      'delete any answers_question content',
+      'create answers_answer content',
+      'edit own answers_answer content',
+      'edit any answers_answer content',
+      'delete own answers_answer content',
+      'delete any answers_answer content',
+    ),
+  );
+
+  foreach ($role_perm as $role_name => $permissions) {
+    $role = user_role_load_by_name($role_name);
+    if ($role) {
+      user_role_grant_permissions($role->rid, $permissions);
+    }
+
+  }
 }
- 
+
 /**
  * Implements hook_uninstall().
  *
- * Removes from the system content types, fields and variables related with question 
- * and answer content types. Content itself (nodes) is left. 
+ * Removes from the system content types, fields and variables related with
+ * question and answer content types. Content itself (nodes) is left.
  */
 function answers_uninstall() {
   field_attach_delete_bundle('node', 'answers_question');
@@ -98,12 +132,14 @@ function answers_uninstall() {
   field_purge_batch(1000);
 
   db_delete('variable')
-  ->condition(db_or()->condition('name', '%_answers_question', 'LIKE')->condition('name', '%_answers_answer', 'LIKE'))
-  ->execute();
+    ->condition(db_or()->condition('name', '%_answers_question', 'LIKE')->condition('name', '%_answers_answer', 'LIKE'))
+    ->execute();
 }
 
 /**
- * Returns a structured array defining the fields created by the answers_question content type.
+ * Returns a structured array.
+ *
+ * Defining the fields created by the answers_question content type.
  */
 function _answers_question_installed_fields() {
   return array(
@@ -122,7 +158,9 @@ function _answers_question_installed_fields() {
 }
 
 /**
- * Returns a structured array defining the field instances for the answer content type.
+ * Returns a structured array.
+ *
+ * Defining the field instances for the answer content type.
  */
 function _answers_question_installed_instances() {
   return array(
@@ -144,7 +182,9 @@ function _answers_question_installed_instances() {
 }
 
 /**
- * Returns a structured array defining the fields created by the answers_answer content type.
+ * Returns a structured array.
+ *
+ * Defining the fields created by the answers_answer content type.
  */
 function _answers_answer_installed_fields() {
   return array(
@@ -169,7 +209,9 @@ function _answers_answer_installed_fields() {
 }
 
 /**
- * Returns a structured array defining the field instances for the answer content type.
+ * Returns a structured array.
+ *
+ * Defining the field instances for the answer content type.
  */
 function _answers_answer_installed_instances() {
   return array(

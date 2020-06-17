@@ -19,6 +19,12 @@ function achievements_permission() {
     'administer achievements' => array(
       'title' => t('Administer achievements'),
     ),
+    'manually grant achievements' => array(
+      'title' => t('Manually grant any achievements'),
+    ),
+    'grant manual achievements' => array(
+      'title' => t('Grant achievements defined as manual-only'),
+    ),
   );
 }
 
@@ -50,6 +56,26 @@ function achievements_menu() {
     'page arguments'    => array(1),
     'title'             => 'Achievements',
     'type'              => MENU_LOCAL_TASK,
+  );
+  $items['user/%user/achievements/%achievements/grant'] = array(
+    'access callback' => 'achievements_access',
+    'access arguments' => array(1, 3, 'grant'),
+    'file' => 'achievements.pages.inc',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('achievements_confirm', 1, 3, 'grant'),
+    'type' => MENU_LOCAL_ACTION,
+    'context' => MENU_CONTEXT_INLINE,
+    'title' => 'Grant achievement',
+  );
+  $items['user/%user/achievements/%achievements/take'] = array(
+    'access callback' => 'achievements_access',
+    'access arguments' => array(1, 3, 'take'),
+    'file' => 'achievements.pages.inc',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('achievements_confirm', 1, 3, 'take'),
+    'type' => MENU_LOCAL_ACTION,
+    'context' => MENU_CONTEXT_INLINE,
+    'title' => 'Take achievement away',
   );
   $items['admin/config/people/achievements'] = array(
     'access arguments'  => array('administer achievements'),
@@ -105,6 +131,40 @@ function achievements_theme() {
 }
 
 /**
+ * Access callback for manually granting/taking achievements.
+ */
+function achievements_access($account, $achievement, $action) {
+  if (!user_access('manually grant achievements') && !user_access('grant manual achievements')) {
+    return FALSE;
+  }
+
+  // Check if this is a manual-only achievement.
+  if (empty($achievement['manual-only']) && !user_access('manually grant achievements')) {
+    // This is not a manual-only achievement, and the user does not have
+    // permission to grant all achievements.
+    return FALSE;
+  }
+
+  // Account must be able to have achievements.
+  list($uid, $access) = achievements_user_is_achiever($account->uid);
+  if (!$access) {
+    return FALSE;
+  }
+
+  // Only allow access to actions that make sense.
+  $unlocked = achievements_unlocked_already($achievement['id'], $account->uid);
+
+  if ($unlocked === NULL) {
+    // User does not have achievement.
+    return $action !== 'take';
+  }
+  else {
+    // User has achievement.
+    return $action !== 'grant';
+  }
+}
+
+/**
  * Process variables for achievement.tpl.php.
  */
 function template_preprocess_achievement(&$variables) {
@@ -136,7 +196,7 @@ function template_preprocess_achievement_latest_unlock(&$variables) {
 function achievements_template_shared_variables(&$variables) {
   $variables['state'] = isset($variables['unlock']) ? 'unlocked' : 'locked';
   $variables['classes_array'][] = 'achievement-' . $variables['state'];
-  $variables['classes_array'][] = 'ui-corner-all'; // add rounded rects for tabs
+  $variables['classes_array'][] = 'ui-corner-all'; // add rounded rects for tabs.
   $variables['achievement_url'] = url('achievements/leaderboard/' . $variables['achievement']['id']);
 
   if (isset($variables['achievement']['secret']) && !achievements_unlocked_already($variables['achievement']['id'])) {
@@ -647,7 +707,9 @@ function achievements_user_delete($account) {
  * Implements hook_page_alter().
  */
 function achievements_page_alter(&$page) {
-  if (achievements_user_is_achiever()) {
+  // Achievement popups won't show if the overlay is active, so we'll defer until it isn't.
+  // See http://drupal.stackexchange.com/questions/35382/hide-module-when-path-is-overlay.
+  if (achievements_user_is_achiever() && !(module_exists('overlay') && path_is_admin($_GET['q']))) {
     $unlocks = db_select('achievement_unlocks', 'au')->fields('au', array('achievement_id', 'rank', 'timestamp')) // find everything we've yet to see.
       ->condition('uid', $GLOBALS['user']->uid)->condition('seen', 0)->orderBy('timestamp')->execute()->fetchAllAssoc('achievement_id', PDO::FETCH_ASSOC);
 

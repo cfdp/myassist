@@ -19,7 +19,7 @@
 
             this.populateBoxes();
 
-            if(Drupal.settings.drupal_logged_in) {
+            if(Drupal.settings.drupal_logged_in || Drupal.settings.drupal_allow_chat_access) {
                 $("div.chat-status-box span.startbutton").on("click", function() {
                     var $boxDiv = ChatStatus.getBoxElem(this),
                         status = ChatStatus.getStatus($boxDiv),

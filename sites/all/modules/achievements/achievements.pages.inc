@@ -245,7 +245,7 @@ function achievements_leaderboard_for($achievement) {
       'type'      => $type,
       'render'    => array(
         '#attributes' => array('class' => array('achievement-leaderboard-' . $type)),
-        '#caption'    => t('@type achievement unlocks', array('@type' => drupal_ucfirst(t($type)))),
+        '#caption'    => t('@type achievement unlocks', array('@type' => drupal_ucfirst($type))),
         '#header'     => array(t('#'), t('Who'), t('Points'), t('When')),
         '#empty'      => t('No one has unlocked this yet. Keep trying!'),
         '#rows'       => $rows,
@@ -266,7 +266,7 @@ function achievements_leaderboard_for($achievement) {
  *   The user object this request applies against.
  */
 function achievements_user_page($account) {
-  drupal_set_title(t('Achievements for @name', array('@name' => $account->name)));
+  drupal_set_title(t('Achievements for @name', array('@name' => format_username($account))));
   $unlocks = achievements_unlocked_already(NULL, $account->uid);
   $achievers = achievements_totals_user(0, $account->uid);
   $achiever = reset($achievers);
@@ -274,7 +274,7 @@ function achievements_user_page($account) {
   $build['achievements']['stats'] = array(
     '#theme'  => 'achievement_user_stats',
     '#stats'  => array(
-      'name'          => $account->name,
+      'name'          => format_username($account),
       'rank'          => isset($achiever->rank) ? $achiever->rank : 0,
       'points'        => isset($achiever->points) ? $achiever->points : 0,
       'unlocks_count' => count($unlocks),
@@ -329,6 +329,16 @@ function achievements_user_page($account) {
       elseif (!isset($unlocks[$achievement_id]) && variable_get('achievements_unlocked_move_to_top', TRUE)) {
         // if we're forcing unlocks to the top, locked achievements have to be forced to the bottom.
         $build['achievements']['tabs']['groups'][$group_id][$achievement_id]['#weight'] = $locked_weight++;
+
+      }
+
+      // Manual grant/take link.
+      if (user_permission('manually grant achievements')) {
+        $contextual_links = array(
+          'achievements' => array('user', array($account->uid, 'achievements', $achievement_id)),
+        );
+
+        $build['achievements']['tabs']['groups'][$group_id][$achievement_id]['#achievement']['#contextual_links'] = $contextual_links;
       }
     }
   }
@@ -343,6 +353,65 @@ function achievements_autocomplete($string = '') {
   $achievements = achievements_load(); // MmmMMmMm, gooOoaaAaalLLlsss.
   array_walk($achievements, 'achievements_autocomplete_search', $string);
   drupal_json_output(array_slice(array_filter($achievements), 0, 10));
+}
+
+/**
+ * Manually grant achievement.
+ *
+ * @param object $account
+ *   Drupal user account object.
+ * @param array $achievement
+ *   The achievement definition.
+ * @param string $action
+ *   Action to perform, either 'grant' or 'take'.
+ */
+function achievements_confirm($form, &$form_state, $account, $achievement, $action) {
+  $form['#achievement'] = $achievement;
+  $form['#account'] = $account;
+  $form['action'] = array(
+    '#type' => 'value',
+    '#value' => $action,
+  );
+
+  $tokens = array(
+    '%achievement' => $achievement['title'],
+    '%user' => format_username($account),
+  );
+  $question = $action == 'grant'
+    ? t('Grant %achievement to %user?', $tokens)
+    : t('Take %achievement away from %user', $tokens);
+  $path = isset($_GET['destination']) ? $_GET['destination'] : 'user/' . $account->uid . '/achievements';
+  $yes = t('Confirm');
+
+  return confirm_form($form, $question, $path, '', $yes);
+}
+
+/**
+ * Grant or take an achivement.
+ */
+function achievements_confirm_submit($form, &$form_state) {
+  $action = $form_state['values']['action'];
+  $achievement = $form['#achievement'];
+  $account = $form['#account'];
+
+  if (!user_access('earn achievements', $account)) {
+    drupal_set_message(t('%username does not have permission to earn achievements.',
+      array('%username' => format_username($form['#account']))), 'error');
+    return;
+  }
+
+  if ($action == 'grant') {
+    achievements_unlocked($achievement['id'], $account->uid);
+    drupal_set_message(t('%username has been given %achievement.', // yeah, yeah.
+      array('%username' => format_username($account), '%achievement' => $achievement['title'])));
+    return;
+  }
+  elseif ($action == 'take') {
+    achievements_locked($achievement['id'], $account->uid);
+    drupal_set_message(t('%username has had %achievement taken away.', // nope, nope.
+      array('%username' => format_username($account), '%achievement' => $achievement['title'])));
+    return;
+  }
 }
 
 /**

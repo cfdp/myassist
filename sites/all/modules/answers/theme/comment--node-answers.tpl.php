@@ -6,8 +6,8 @@
  *
  * Available variables:
  * - $author: Comment author. Can be link or plain text.
- * - $content: An array of comment items. Use render($content) to print them all, or
- *   print a subset such as render($content['field_example']). Use
+ * - $content: An array of comment items. Use render($content) to print them
+ *   all, or print a subset such as render($content['field_example']). Use
  *   hide($content['field_example']) to temporarily suppress the printing of a
  *   given element.
  * - $created: Formatted date and time for when the comment was created.
@@ -27,13 +27,15 @@
  * - $title: Linked title.
  * - $classes: String of classes that can be used to style contextually through
  *   CSS. It can be manipulated through the variable $classes_array from
- *   preprocess functions. The default values can be one or more of the following:
+ *   preprocess functions. The default values can be one or more of the
+ *   following:
  *   - comment: The current template type, i.e., "theming hook".
  *   - comment-by-anonymous: Comment by an unregistered user.
  *   - comment-by-node-author: Comment by the author of the parent node.
  *   - comment-preview: When previewing a new or edited comment.
  *   The following applies only to viewers who are registered users:
- *   - comment-unpublished: An unpublished comment visible only to administrators.
+ *   - comment-unpublished: An unpublished comment visible only to
+ *     administrators.
  *   - comment-by-viewer: Comment by the user currently viewing the page.
  *   - comment-new: New comment since last the visit.
  * - $title_prefix (array): An array containing additional output populated by
@@ -59,22 +61,22 @@
 ?>
 <div class="<?php print $classes; ?> clearfix"<?php print $attributes; ?>>
   <span class="answers-comment-text">
-  <?php print render($content['comment_body']);?>
+    <?php print render($content['comment_body']);?>
   </span>
   <span class="commenter-name">
     <?php print $author; ?>
-  </span> - 
+  </span> -
   <span class="comment-time">
     <?php print $created; ?>
   </span>
-  
-  <?php 
+
+    <?php
     unset($content['links']['comment']['#links']['comment-reply']);
     $links = render($content['links']);
-    if($links != ''):
-  ?>
+    if ($links != '') :
+    ?>
   <span class="comment-links">
      ::: <?php print $links; ?>
   </span>
-  <?php endif; ?>
+    <?php endif; ?>
 </div>

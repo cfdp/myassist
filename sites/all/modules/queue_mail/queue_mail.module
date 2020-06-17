@@ -53,11 +53,14 @@ function queue_mail_cron_queue_info() {
 function queue_mail_mail_alter(&$message) {
   $mail_keys = variable_get('queue_mail_keys', '');
 
-  if (drupal_match_path($message['id'], $mail_keys)) {
-    // Store the message for sending on cron.
-    _queue_mail_get_queue()->createItem($message);
-    // And prevent the message from being sent instantly.
-    $message['send'] = FALSE;
+  if (drupal_match_path($message['id'], $mail_keys) && $message['send']) {
+    // if message is already set to NOT be sent do not queue it
+    if ($message['send'] != FALSE) {
+      // Store the message for sending on cron.
+      _queue_mail_get_queue()->createItem($message);
+      // And prevent the message from being sent instantly.
+      $message['send'] = FALSE;
+    }
   }
 }
 
@@ -111,9 +114,10 @@ function queue_mail_send($message = array()) {
   // Sending was originally requested and was not canceled.
   else {
     $message['result'] = $system->mail($message);
-    // Log errors.
+    // Log errors and throw exception so that failed item remains in queue.
     if (!$message['result']) {
-      watchdog('mail', 'Error sending e-mail (from %from to %to).', array('%from' => $message['from'], '%to' => $message['to']), WATCHDOG_ERROR);
+      throw new Exception(t('Error sending e-mail (from %from to %to).',
+        array('%from' => $message['from'], '%to' => $message['to'])));
     }
   }
 

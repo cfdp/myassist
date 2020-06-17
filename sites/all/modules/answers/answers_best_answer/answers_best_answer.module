@@ -1,23 +1,24 @@
 <?php
+
 /**
  * @file
- * Support selection of 'Best Answers' for the 'Answers' module
+ * Support selection of 'Best Answers' for the 'Answers' module.
  *
- * This file allows question authors and site managers to select a best answer for a question.
+ * This file allows question authors and site managers to select a best answer
+ * for a question.
  *
  * Only a single best answer can be selected.
  *
- * To configure the module, go to admin/config/content/answers. The site administrator can choose:
- *   - Whether questions will automatically be locked after a best answer is selected
- *   - Whether best answers are locked (and cannot be changed) after a question is locked
+ * To configure the module, go to admin/config/content/answers. The site
+ * administrator can choose:
+ *   - Whether questions will automatically be locked after a best answer
+ *      is selected
+ *   - Whether best answers are locked (and cannot be changed) after a question
+ *      is locked
  *
- * Users with the 'manage answers content' permission can always set and modify best answers regardless
- * of question locks.
- *
- * @author Chip Cleary
+ * Users with the 'manage answers content' permission can always set and modify
+ * best answers regardless of question locks.
  */
-
-module_load_include('inc', 'answers', 'includes/answers.lock');
 
 /**
  * Implements hook_form_alter().
@@ -81,6 +82,7 @@ function answers_best_answer_settings_form_submit($form, &$form_state) {
   $new = $form_state['values']['answers_best_answer_lock_questions_p'];
   $old = $form_state['values']['answers_best_answer_old_lock_questions_p'];
   if ($old != $new) {
+    module_load_include('inc', 'answers', 'includes/answers.lock');
     answers_reset_lock_info();
     drupal_set_message($new ? t('Questions that have best answers have been locked.') : t('Questions that have best answers have been unlocked (unless they are locked for another reason)'));
   }
@@ -112,7 +114,7 @@ function answers_best_answer_question_best_answer($question) {
  *
  * Flag API 3
  */
-function answers_best_answer_flag_flag($flag, $content_id, $account, $flagging)  {
+function answers_best_answer_flag_flag($flag, $content_id, $account, $flagging) {
   module_load_include('inc', 'answers', 'includes/answers.lock');
 
   if ($flag->name == "best_answer") {
@@ -123,10 +125,11 @@ function answers_best_answer_flag_flag($flag, $content_id, $account, $flagging) 
 
     // Unflag a prior best answer if one exists.
     $old_answer = NULL;
-      foreach ($answers as $answer) {
+    foreach ($answers as $answer) {
       if (($answer->nid != $content_id) && $flag->is_flagged($answer->nid)) {
         $flag->flag('unflag', $answer->nid);
         $old_answer = $answer;
+        answers_question_lock_unset($old_answer, 'answers_best_answer');
       }
     }
     answers_question_lock_set($question, 'answers_best_answer');
@@ -139,17 +142,15 @@ function answers_best_answer_flag_flag($flag, $content_id, $account, $flagging) 
  *
  * Flag API 3
  */
-function answers_best_answer_flag_unflag($flag, $content_id, $account, $flagging)  {
+function answers_best_answer_flag_unflag($flag, $content_id, $account, $flagging) {
   module_load_include('inc', 'answers', 'includes/answers.lock');
   if ($flag->name == "best_answer") {
 
     $flagged_answer = entity_metadata_wrapper('node', $content_id);
     $question = answers_answer_question($content_id);
 
-    if (!answers_best_answer_question_best_answer($question)) {
-      answers_question_lock_unset($question, 'answers_best_answer');
-      module_invoke_all('answers_best_answer_unset', $question, $flagged_answer->value());
-    }
+    answers_question_lock_unset($question, 'answers_best_answer');
+    module_invoke_all('answers_best_answer_unset', $question, $flagged_answer->value());
   }
 }
 
@@ -172,6 +173,8 @@ function answers_best_answer_flag($op, $flag, $content_id, $account, $fcid) {
         if (($answer->nid != $content_id) && $flag->is_flagged($answer->nid)) {
           $flag->flag('unflag', $answer->nid);
           $old_answer = $answer;
+          answers_question_lock_unset($old_answer, 'answers_best_answer');
+          module_invoke_all('answers_best_answer_unset', $question, $old_answer);
         }
       }
       answers_question_lock_set($question, 'answers_best_answer');
@@ -194,72 +197,24 @@ function answers_best_answer_flag($op, $flag, $content_id, $account, $fcid) {
 function answers_best_answer_flag_default_flags() {
   $flags = array();
   // Exported flag: "Best Answer".
-  $flags['best_answer'] = ((FLAG_API_VERSION == 3) ? 
-    answers_best_answer_best_answer_flag_api3() : 
-	answers_best_answer_best_answer_flag_api2()
+  $flags['best_answer'] = ((FLAG_API_VERSION == 3) ?
+    answers_best_answer_best_answer_flag_api3() :
+  answers_best_answer_best_answer_flag_api2()
   );
   return $flags;
 }
 
+/**
+ * Wrapper for flag 3.x hook_flag_default_flags().
+ */
 function answers_best_answer_best_answer_flag_api3() {
-$flag = 
-array(
-  'entity_type' => 'node',
-  'title' => 'Best Answer',
-  'global' => TRUE,
-  'types' => array(
-    0 => 'answers_answer',
-  ),
-  'flag_short' => 'Best',
-  'flag_long' => 'Select as the best answer',
-  'flag_message' => 'Selected as the best answer.',
-  'unflag_short' => 'Unbest',
-  'unflag_long' => 'Unselect as the best answer',
-  'unflag_message' => 'Unselected as the best answer.',
-  'unflag_denied_text' => '',
-  'link_type' => 'toggle',
-  'weight' => 0,
-  'show_in_links' => array(
-    'full' => 0,
-    'teaser' => 0,
-    'rss' => 0,
-    'search_index' => 0,
-    'search_result' => 0,
-    'answers_full_node' => 0,
-    'token' => 0,
-  ),
-  'show_as_field' => 0,
-  'show_on_form' => FALSE,
-  'access_author' => '',
-  'show_contextual_link' => 0,
-  'i18n' => 0,
-  'module' => 'answers_best_answer',
-  'locked' => array(
-    'name' => 'name',
-    'global' => 'global',
-    'types' => 'types',
-    'show_on_page' => 'show_on_page',
-    'show_on_form' => 'show_on_form',
-    'status' => 'status',
-  ),
-  'show_on_page' => FALSE,
-  'status' => TRUE,
-  'api_version' => 3,
-);
-return $flag;
-}
-
-function answers_best_answer_best_answer_flag_api2() {
-  $flag = 
-    $flags['best_answer'] = array(
-    'content_type' => 'node',
-    'name' => 'best_answer',
+  $flag =
+  array(
+    'entity_type' => 'node',
     'title' => 'Best Answer',
     'global' => TRUE,
-    'types' => array('answers_answer'),
-    'roles' => array(
-      'flag' => array(2),
-      'unflag' => array(2),
+    'types' => array(
+      0 => 'answers_answer',
     ),
     'flag_short' => 'Best',
     'flag_long' => 'Select as the best answer',
@@ -267,12 +222,25 @@ function answers_best_answer_best_answer_flag_api2() {
     'unflag_short' => 'Unbest',
     'unflag_long' => 'Unselect as the best answer',
     'unflag_message' => 'Unselected as the best answer.',
-    'show_on_page' => FALSE,
-    'show_on_teaser' => FALSE,
+    'unflag_denied_text' => '',
+    'link_type' => 'toggle',
+    'weight' => 0,
+    'show_in_links' => array(
+      'full' => 0,
+      'teaser' => 0,
+      'rss' => 0,
+      'search_index' => 0,
+      'search_result' => 0,
+      'answers_full_node' => 0,
+      'token' => 0,
+    ),
+    'show_as_field' => 0,
     'show_on_form' => FALSE,
-    'status' => TRUE,
+    'access_author' => '',
+    'show_contextual_link' => 0,
+    'i18n' => 0,
+    'module' => 'answers_best_answer',
     'locked' => array(
-      'content_type' => 'content_type',
       'name' => 'name',
       'global' => 'global',
       'types' => 'types',
@@ -280,16 +248,57 @@ function answers_best_answer_best_answer_flag_api2() {
       'show_on_form' => 'show_on_form',
       'status' => 'status',
     ),
-    'module' => 'answers_best_answer',
-    'api_version' => 2,
+    'show_on_page' => FALSE,
+    'status' => TRUE,
+    'api_version' => 3,
   );
+  return $flag;
+}
+
+/**
+ * Wrapper for flag 2.x hook_flag_default_flags().
+ */
+function answers_best_answer_best_answer_flag_api2() {
+  $flag =
+    $flags['best_answer'] = array(
+      'content_type' => 'node',
+      'name' => 'best_answer',
+      'title' => 'Best Answer',
+      'global' => TRUE,
+      'types' => array('answers_answer'),
+      'roles' => array(
+        'flag' => array(2),
+        'unflag' => array(2),
+      ),
+      'flag_short' => 'Best',
+      'flag_long' => 'Select as the best answer',
+      'flag_message' => 'Selected as the best answer.',
+      'unflag_short' => 'Unbest',
+      'unflag_long' => 'Unselect as the best answer',
+      'unflag_message' => 'Unselected as the best answer.',
+      'show_on_page' => FALSE,
+      'show_on_teaser' => FALSE,
+      'show_on_form' => FALSE,
+      'status' => TRUE,
+      'locked' => array(
+        'content_type' => 'content_type',
+        'name' => 'name',
+        'global' => 'global',
+        'types' => 'types',
+        'show_on_page' => 'show_on_page',
+        'show_on_form' => 'show_on_form',
+        'status' => 'status',
+      ),
+      'module' => 'answers_best_answer',
+      'api_version' => 2,
+    );
 
   return $flag;
 }
 
 /**
  * Implements hook_node_view().
- * 
+ *
  * Adding the best answer widget or mark depending on user privileges.
  */
 function answers_best_answer_node_view($node, $view_mode = 'full') {
@@ -322,11 +331,14 @@ function answers_best_answer_node_view($node, $view_mode = 'full') {
  */
 function answers_best_answer_flag_access($flag, $content_id, $action, $account) {
   if ($flag->name == "best_answer") {
+    module_load_include('inc', 'answers', 'includes/answers.lock');
     $question = answers_answer_question($content_id);
-    $best_answer_locked_p = variable_get('answers_best_answer_lock_choice_p', NULL) && answers_question_locked_p($question);
+    $best_answer_locked_p = variable_get('answers_best_answer_lock_choice_p', NULL)
+      && answers_question_locked_p($question);
 
     // The question author can set a best answer if best answers are not locked.
-    // A user with the 'manage answers content' permission can always set a best answer.
+    // A user with the 'manage answers content' permission can always set a
+    // best answer.
     return ((($question->uid == $account->uid) && !$best_answer_locked_p) ||
             user_access('manage answers content', $account));
   }
@@ -355,10 +367,10 @@ function answers_best_answer_preprocess_node(&$vars) {
 
 /**
  * Implements hook_views_default_views_alter().
- * 
+ *
  * Adding:
  *   - question_answers: Set the first sort criteria to be the best answer
- *   - questions:  Indicate whether best answer is flagged
+ *   - questions:  Indicate whether best answer is flagged.
  *
  * http://drupal.org/node/1014774
  * http://api.drupal.org/api/views/views.api.php/function/hook_views_default_views_alter/7
@@ -391,7 +403,8 @@ function answers_best_answer_views_default_views_alter(&$views) {
     /* Add the sort criteria as the first for the display */
     $handler->display->display_options['sorts'] = array_merge(
       array('timestamp' => $best_answer_sort),
-      $handler->display->display_options['sorts']);
+      isset($handler->display->display_options['sorts']) ? $handler->display->display_options['sorts'] : array()
+      );
   }
 
   if (array_key_exists('questions', $views)) {
@@ -419,7 +432,7 @@ function answers_best_answer_views_default_views_alter(&$views) {
     $handler->display->display_options['fields']['timestamp']['label'] = 'Best Answer';
     $handler->display->display_options['fields']['timestamp']['exclude'] = TRUE;
     $handler->display->display_options['fields']['timestamp']['alter']['alter_text'] = 1;
-    $handler->display->display_options['fields']['timestamp']['alter']['text'] = '<img src="misc/message-16-ok.png" />';
+    $handler->display->display_options['fields']['timestamp']['alter']['text'] = '<img src="' . base_path() . 'misc/message-16-ok.png" />';
     $handler->display->display_options['fields']['timestamp']['alter']['make_link'] = 0;
     $handler->display->display_options['fields']['timestamp']['alter']['absolute'] = 0;
     $handler->display->display_options['fields']['timestamp']['alter']['external'] = 0;
