@@ -17,6 +17,4 @@ webroot/sites/*/private
 webroot/sites/all/modules/reroute_email
 webroot/sites/all/modules/stage_file_proxy
 
-# Symlink to opeka source code should be configured locally
-webroot/sites/all/modules/opeka
 

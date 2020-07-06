@@ -17,3 +17,20 @@ function myassist_core_theme($existing, $type, $theme, $path){
     ),
   );
 }
+
+/**
+ * Implements hook_mail_alter().
+ */
+function myassist_core_mail_alter(&$message)
+{
+  if(variable_get('enable_mailcatcher_hack', false)) {
+    if(is_array($message['body'])) {
+      foreach ($message['body'] as $key => $value) {
+        $message['body'][$key] = base64_encode($message['body'][$key]);
+      }
+    } else {
+      $message['body'] = base64_encode($message['body']);
+    }
+    $message['headers']['Content-Transfer-Encoding'] = 'base64';
+  }
+}
