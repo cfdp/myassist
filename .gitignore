@@ -14,7 +14,6 @@ webroot/sites/*/private
 
 # Cache and dev files
 .sass-cache
-webroot/sites/all/modules/reroute_email
 webroot/sites/all/modules/stage_file_proxy
 
 
