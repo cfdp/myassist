@@ -3,15 +3,14 @@
 .ruby-version
 
 # Ignore configuration files that may contain sensitive information.
-webroot/sites/*/settings*.php
+webroot/sites/*/settings.*.php
 
 # Ignore paths that contain generated content.
 webroot/sites/*/files
 webroot/sites/*/private
 
-# Ignore default text files
-
-# Ignore everything but the "sites" folder ( for non core developer )
+/logs
+/sql
 
 # Cache and dev files
 .sass-cache
