@@ -1,0 +1,577 @@
+/************************************************************************************************/
+/* THE BODY WRAPPER                                                                          */
+/************************************************************************************************/
+
+.node-answers-wrapper {
+  padding: $u*0.5 0 ;
+}
+
+.answers-body-wrapper {
+  clear: both;
+  margin-left: 0;
+
+  .answers-body {
+    .content {
+      .field-item {
+        word-wrap: break-word;
+      }
+      .form-type-item {
+        display: none;
+      }
+    }
+  }
+}
+
+
+.view-user-nodes .views-row {
+  border-bottom: 1px solid #ccc;
+}
+
+
+  /************************************************************************************************/
+/* THE QUESTION                                                                                 */
+/************************************************************************************************/
+
+.node-answers-question .content {
+  min-height: $u;
+  border: none;
+  padding: 0;
+  &:after {
+    border: none;
+  }
+  &:before {
+    border: none;
+  }
+}
+
+
+/************************************************************************************************/
+/* ADD QUESTION FORM                                                                            */
+/************************************************************************************************/
+
+.form-field-name-field-advisor {
+  @include clearfix;
+  .form-item.form-type-radio {
+    float: left;
+    height: $u*8;
+    margin: 0 $u*0.5 $u $u*0.5;
+    label {
+      margin-left: $u*0.25;
+    }
+    .views-field-picture {
+      overflow: hidden;
+      display: block;
+      .field-content {
+        display: block;
+        a {
+          display: block;
+        }
+        img {
+          height: $u*6.5;
+          max-width: 100%;
+          max-height: 100%;
+          line-height: 1;
+          border-radius: 50%;
+        }
+      }
+    }
+  }
+  .form-item.form-type-radio:first-child {
+    display: none;
+  }
+  .form-type-radios {
+    display: flex;
+    flex-direction: column;
+    label {
+      -webkit-order: 1;
+      order: 1;
+    }
+    .form-radios {
+      -webkit-order: 3;
+      order: 3;
+    }
+    .description {
+      -webkit-order: 2;
+      order: 2;
+      padding-bottom: $u;
+    }
+  }
+  
+}
+
+
+/************************************************************************************************/
+/* THE WIDGETS WRAPPER                                                                          */
+/************************************************************************************************/
+
+.answers-widgets-wrapper,
+.node-answers-answer .rate-widget-number_up_down,
+.node-answers-question .rate-widget-number_up_down{
+  float: none;
+}
+.node-answers-answer .answers-widgets-wrapper {
+  @include clearfix;
+  margin-top: 0;
+  width: auto;
+  .flag-best-answer,
+  .marked-best-answer {
+    display: block;
+    float: right;
+    margin: 0;
+  }
+  .answers-widgets .flag-wrapper {
+    .marked-best-answer,
+    .flag {
+      @extend .icons;
+      display: inline-block;
+      vertical-align: middle;
+      background-image: url('../images/icons/checkmark2.svg');
+    }
+    .flag-action:before {
+      content: '';
+    }
+    .flag:hover,
+    .flag:active,
+    .marked-best-answer,
+    .unflag-action {
+      background-image: url('../images/icons/checkmark.svg');
+    }
+    .unflag-action:hover,
+    .unflag-action:active {
+      background-image: url('../images/icons/checkmark2.svg');
+    }
+  }
+}
+
+.node-answers-wrapper .node-answers-answer .answers-widgets .rate-widget {
+  float: left;
+  display: block;
+  width: auto;
+  margin: 0;
+  .rate-button {
+    @extend .icons;
+    background-image: url('../images/icons/circle-up.svg');
+    background-size: auto 50%;
+    float: left;
+  }
+  .rate-button:hover,
+  .rate-button:active {
+    background-size: auto 66%;
+  }
+  .rate-number-up-down-rating {
+    font-family: $base-font-family;
+    float: left;
+    display: block;
+    color: $smoke;
+    font-size: $u;
+    line-height: 1.2;
+    margin-top: 6px;
+    padding: $u/1.5 0;
+    width: inherit;
+  }
+  .rate-number-up-down-btn-up:hover {
+    background-position: center center;
+  }
+  .rate-voted {
+    opacity: 0.3;
+  }
+}
+
+
+/************************************************************************************************/
+/* THE SUBMITTED BLOCK                                                                          */
+/************************************************************************************************/
+
+.answers-submitted {
+  border: none;
+  font-family: $base-font-family;
+  padding-top: $u*0.5;
+  .user-picture {
+    float: left;
+    width: $u*2.5;
+    margin: 0;
+    padding: 0;
+    a {
+      display: block;
+    }
+    img {
+      width: 100%;
+      height: auto;
+      border-radius: $u*2.5;
+    }
+  }
+  .author-name,
+  .author-details {
+    padding: 0 0 0 $u*3;
+    display: block;
+    font-weight: normal;
+    text-align: right;
+
+    p {
+      top: inherit;
+      transform: none;
+    }
+  }
+  .author-points {
+    color: $smoke;
+  }
+  .username {
+    overflow: hidden;
+    display: block;
+  }
+}
+
+.submitted-time,
+.answer_count,
+.question_locked {
+  color: $smoke;
+  display: inline-block;
+  padding-right: $u*0.25;
+}
+
+.submitted-time {
+  border-right: solid 1px $smoke;
+}
+
+.view-user-nodes .node-answers-answer .submitted-time {
+  border-right: 0 none;
+}
+
+.question_locked {
+  color: $white !important;
+  background-color: $green;
+  padding: $u*0.25;
+  line-height: 1;
+}
+
+
+/************************************************************************************************/
+/* TOOLBAR                                                                                     */
+/************************************************************************************************/
+
+.answers-body-toolbar {
+  font-size: $u*0.8;
+  color: $smoke;
+  height: inherit;
+  padding-top: $u;
+}
+.answers-body-toolbar a {
+  @extend .btn;
+  margin-bottom: $u*0.5 !important;
+}
+.answers-body-toolbar ul.links li {
+  cursor: auto;
+  text-align: left;
+}
+.link-wrapper {
+  @include clearfix;
+}
+#answers-btn-answer {
+  @extend .greenbtn;
+  margin-bottom: $u !important;
+}
+
+/************************************************************************************************/
+/* COMMENTS                                                                                     */
+/************************************************************************************************/
+
+.answers-body-wrapper {
+  .comment-wrapper {
+    background: $grey;
+    margin: $u 0 0;
+    border: none;
+    padding: 0;
+    .answers-comments-title {
+      display: block;
+      text-transform: uppercase;
+      font-size: $u*0.7;
+      color: $smoke;
+      background: $white;
+      padding: 0 0 $u/2;
+      font-weight: normal;
+    }
+    .comment-form {
+      padding: 1px $u 0;
+    }
+  }
+  .comment {
+    border-top: solid 1px #fff;
+    padding: $u;
+  }
+  .comment_forbidden {
+    
+  }
+}
+.answers-comment-widgets-wrapper {
+  display: none;
+}
+.author-is-current .answers-submitted img {
+  /*border: solid 1px $blue;*/
+}
+.author-role_debatraadgiver .answers-submitted img,
+.author-role_administrator .answers-submitted img{
+  border: solid 1px $orange;
+}
+
+/************************************************************************************************/
+/* BUTTONS                                                                                      */
+/************************************************************************************************/
+
+.answers-btn-primary,
+.node-answers-wrapper input.form-submit {
+  @extend .greenbtn;
+  float: none;
+}
+
+.answers-body-toolbar {
+  ul.links {
+    display: block;
+    height: auto;
+    float: right;
+    height: auto;
+    li {
+      display: inline-block;
+      height: auto;
+      padding: 0;
+      margin: 0 0 0 $u*0.3;
+    }
+  }
+}
+
+
+.answers-answer-edit:before,
+.answers-answer-delete:before,
+.answers-comment-button:before,
+.answers-form-filter-help:before {
+  content: '' !important;
+  height: 0;
+  line-height: 0;
+  margin: 0 !important;
+}
+.answers-form-filter-help {
+  display: block;
+  height: auto;
+}
+.node-readmore a,
+.comment-comments a,
+.comment-new-comments a {
+  display: block;
+  padding: $u/2;
+}
+#edit-preview-changes {
+  display: none;
+}
+#node-delete-confirm #edit-actions {
+  padding-top: $u;
+}
+
+
+/************************************************************************************************/
+/* ANSWERS                                                                                      */
+/************************************************************************************************/
+
+.answers-list {
+  background-color: $grey;
+  margin-left: -($u);
+  margin-right: -($u);
+  margin-top: $u;
+  margin-bottom: 0;
+  padding: 0 0 1px;
+  .view-filters {
+    margin: 0 $u;
+  }
+  .views-row  {
+    background-color: $white;
+    margin: $u;
+    padding: $u;
+    .answers-body-wrapper {
+      border: none;
+    }
+  }
+  .submitted-time {
+    border: none;
+  }
+}
+
+.node-answers-wrapper .view-question-answers .view-header {
+  font-size: $u;
+  margin: 0;
+  background-color: $orange;
+  padding: $u*0.5 $u;
+  color: $white;
+}
+
+.node-answers-answer {
+  border: none;
+  .field-name-body .field-items .field-item p,
+  div.field-name-body {
+    display: block;
+  }
+}
+
+.answers-body {
+  .field-name-field-category {
+   .field-label {
+      @include element-invisible;
+    }
+    .field-item {
+      display: inline-block;
+      a,
+      a:link,
+      a:visited {
+        display: block;
+        padding: $u*0.25 $u*0.75;
+        font-size: $u*0.8;
+        text-align: center;
+        background-color: $orange;
+        color: #fff;
+      }
+      a:hover,
+      a:focus {
+        background-color: lighten($orange, 20%);      
+      }
+      a:active {
+        background-color: darken($orange, 10%);
+      }      
+    }
+  }
+  .content .field {
+    padding: 0;
+  }
+}
+
+// This is a hack! Hiding language picker form element becuase we seemingly can't undisplay it from view admin
+.form-item-language {
+  display: none;
+}
+
+
+/************************************************************************************************/
+/* NEW ANSWERS FORM                                                                             */
+/************************************************************************************************/
+
+.node-answers-wrapper {
+  .node-answers_answer-form {
+    margin: 0;
+    border: none;
+  }
+}
+
+.text-format-wrapper {
+  margin-bottom: $u/2;
+
+  .filter-wrapper {
+    display: none;
+  }
+}
+
+
+/************************************************************************************************/
+/* NOTIFICATIONS                                                                                */
+/************************************************************************************************/
+
+.achievement-notification-dialog {
+  max-width: 100%;
+}
+.achievement-notification .achievement-points-box,
+.achievement-notification,
+.achievement-notification-dialog {
+  border: none;
+  margin: 0;
+  text-align: center;
+  height: auto;
+  width: auto;
+  border-radius: 0;
+}
+.achievement-notification-dialog .achievement-notification {
+  background: $orange;
+  color: #fff;
+  max-width: 100%;
+  height: auto !important;
+  padding: 0;
+  .achievement-image {
+    @extend .icons;
+    background-image: url('../images/icons/trophy.svg');
+    background-color: #fff;
+    width: $u*3;
+    height: $u*3;
+    margin: $u;
+    float: left;
+  }
+  .achievement-points-box {
+    display: none;
+  }
+  .achievement-body {
+    margin: 0;
+    padding: $u;
+  }
+}
+
+
+/************************************************************************************************/
+/* ACHIEVEMENTS                                                                                 */
+/************************************************************************************************/
+
+.achievement-image {
+  width: $u*4;
+  min-height: $u*4;
+  margin: $u/2 $u;
+  a,
+  img {
+    display: block;
+    width: auto;
+    height: 100%;
+  }
+}
+
+.achievement {
+  height: auto;
+  @include clearfix;
+  text-align: center;
+  border: none;
+  border-bottom: solid 1px $grey;
+  .achievement-image {
+    float: none;
+    margin: 0 auto;
+    padding: 0 0 $u*0.5;
+    display: block;
+  }
+  .achievement-points-box {
+    float: none;
+    border: none;
+    display: block;
+    width: auto;
+    margin: 0;
+    padding: $u*0.5;
+    height: auto;
+  }
+  .achievement-body {
+    float: none;
+    display: block;
+    clear: both;
+  }
+  .achievement-points,
+  .achievement-unlocked-stats {
+    display: inline-block;
+  }
+}
+
+.achievement-leaderboard-first,
+.achievement-leaderboard-recent {
+  float: none;
+  width: auto;
+  margin-bottom: $u;
+}
+
+.author-details {
+
+  p {
+    margin: 0;
+  }
+
+  img.gendericon {
+    width: 10px;
+    height: 10px;
+    border: 0 none;
+  }
+}

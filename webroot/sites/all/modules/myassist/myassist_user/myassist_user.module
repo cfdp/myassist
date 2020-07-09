@@ -1,0 +1,370 @@
+<?php
+/**
+ * @file
+ * Code for the MyAssist User feature.
+ */
+
+include_once 'myassist_user.features.inc';
+include_once 'myassist_user.rules.inc';
+
+
+function myassist_user_get_profile_value($profile, $fieldNames) {
+  if (!($profile instanceof Profile)) {
+    $profile = profile2_load_by_user($profile);
+  }
+  if (is_array($profile) && count($profile) > 0) {
+    foreach ($profile as $key => $value) {
+      $profile = $value;
+      break;
+    }
+  }
+  if (!is_array($fieldNames)) {
+    $fieldNames = array($fieldNames);
+  }
+  foreach ($fieldNames as $fieldName) {
+    $value = field_get_items("profile2", $profile, $fieldName);
+    if ($value !== FALSE) {
+      if (is_array($value)) {
+        $value = count($value) ? $value[0] : NULL;
+      }
+      if (is_array($value) && array_key_exists("value", $value)) {
+        return $value['value'];
+      }
+    }
+  }
+  return null;
+}
+
+
+function myassist_user_get_age($profile) {
+  $birthdate = myassist_user_get_profile_value($profile, "field_birthday");
+  if ($birthdate) {
+    if (is_array($birthdate) && array_key_exists('value', $birthdate)) {
+      $birthdate = $birthdate['value'];
+    }
+    $diff = date_diff(DateTime::createFromFormat('U', $birthdate), new DateTime());
+    $age = $diff->y;
+    return $age;
+  }
+  return null;
+}
+
+
+function myassist_user_get_gender($profile) {
+  return myassist_user_get_profile_value($profile, array("field_gender","field_gender_adult"));
+}
+
+/**
+ * Implements hook_profile2_view().
+ */
+function myassist_user_profile2_view($profile, $view_mode, $langcode) {
+  $uid = $profile->uid;
+
+  $profile->content['userinfo'] = array(
+    '#theme' => "myassist_userinfo"
+  );
+
+  $age = myassist_user_get_age($profile);
+
+  if ($age) {
+    $profile->content['userinfo']['#age'] = array(
+      '#theme' => 'field',
+      '#weight' => '1',
+      '#title' => 'Age',
+      '#access' => TRUE,
+      '#label_display' => 'hidden',
+      '#view_mode' => 'account',
+      '#language' => $langcode,
+      '#field_name' => 'field_age',
+      '#field_type' => 'number_integer',
+      '#field_translatable' => '0',
+      '#entity_type' => 'profile2',
+      '#bundle' => 'ungeprofil',
+      '#items' => array(
+        array(
+          'value' => t('%age years', array("%age" => $age))
+        )
+      ),
+      0 => array(
+        '#markup' => t('%age years', array("%age" => $age))
+      )
+    );
+  }
+
+
+
+  if (array_key_exists("field_gender", $profile->content)) {
+    $profile->content['userinfo']['#gender'] = $profile->content["field_gender"];
+    unset($profile->content["field_gender"]);
+  } else if (array_key_exists("field_gender_adult", $profile->content)) {
+    $profile->content['userinfo']['#gender'] = $profile->content["field_gender_adult"];
+    unset($profile->content["field_gender_adult"]);
+  }
+
+  unset($profile->content["field_age"]);
+
+
+  $profile->content['username'] = array(
+    '#theme' => "myassist_username", // Point to definition in myassist_achievements_theme
+    '#weight' => 0,
+    '#title' => 'Username',
+    '#name' => $profile->user()->name, // Pass data to template (name must be defined in the definition)
+  );
+  $profile->content['membersince'] = array(
+    '#theme' => "myassist_membersince", // Point to definition in myassist_achievements_theme
+    '#weight' => 0,
+    '#title' => 'Membersince',
+    '#created' => date('d.m.Y', $profile->created),
+  );
+
+  $profile->content['nodes'] = array(
+    '#markup' => views_embed_view("user_nodes", 'default', $uid),
+  );
+}
+
+/**
+ * Implements hook_user_view().
+ */
+function myassist_user_user_view($account, $view_mode, $langcode) {
+  unset($account->content['user_picture']); // Sabotage user picture; we'll display it ourselves
+  unset($account->content['userpoints']); // Sabotage points display from function userpoints_user_view in the userpoints module
+  unset($account->content['summary']); // Sabotage history display; we'll display it ourselves
+  unset($account->content['mimemail']); // Sabotage mimemail display, it is only in the way
+}
+
+/**
+ * Implements hook_theme().
+ */
+function myassist_user_theme($existing, $type, $theme, $path){
+  return array(
+    'myassist_username' => array(
+      'template' => 'templates/myassist_username', // define myassist_points.tpl.php inside module - point to myassist_achievements/templates/myassist_points.tpl.php
+      'variables' => array('name' => NULL), //define all variables used in the template file
+    ),
+    'myassist_membersince' => array(
+      'template' => 'templates/myassist_membersince', // define myassist_points.tpl.php inside module - point to myassist_achievements/templates/myassist_points.tpl.php
+      'variables' => array('created' => NULL), //define all variables used in the template file
+    ),
+    'myassist_userinfo' => array(
+      'template' => 'templates/myassist_userinfo', // define myassist_points.tpl.php inside module - point to myassist_achievements/templates/myassist_points.tpl.php
+      'variables' => array('gender' => NULL, 'age' => NULL), //define all variables used in the template file
+    ),
+  );
+}
+
+function myassist_user_preprocess_menu_local_tasks(&$vars, $hooks) {
+  unset($vars['primary']); // Nuke the user view tabs
+}
+
+
+function myassist_user_menu() {
+  $items = array();
+
+  $items['user/view'] = array(
+    'title'            => t('View profile'),
+    'description'      => t('View own profile'),
+    'page callback'    => 'myassist_user_view_my_profile',
+    'access callback'  => 'myassist_user_can_view_own_profile',
+    'type'             => MENU_NORMAL_ITEM,
+    'menu_name'        => 'user-menu',
+  );
+  $items['user/edit'] = array(
+    'title'            => t('Edit Profile'),
+    'description'      => t('Edit own profile'),
+    'page callback'    => 'myassist_user_edit_my_profile',
+    'access callback'  => 'myassist_user_can_edit_own_profile',
+    'type'             => MENU_NORMAL_ITEM,
+    'menu_name'        => 'user-menu',
+  );
+  $items['user/achievements'] = array(
+    'title'            => t('Achievements'),
+    'description'      => t('View my achievements'),
+    'page callback'    => 'myassist_user_view_my_achievements',
+  //'access callback'  => 'user_access', <- this is the default
+    'access arguments' => array('access achievements'),
+    'type'             => MENU_NORMAL_ITEM,
+    'menu_name'        => 'user-menu',
+  );
+
+  $items['user/points'] = array(
+    'title'            => t('Points'),
+    'description'      => t('View my points'),
+    'page callback'    => 'myassist_user_view_my_points',
+  //'access callback'  => 'user_access', <- this is the default
+    'access arguments' => array('view own userpoints'),
+    'type'             => MENU_NORMAL_ITEM,
+    'menu_name'        => 'user-menu',
+  );
+  return $items;
+}
+
+function myassist_user_can_edit_own_profile() {
+  return user_access("edit own ungeprofil profile") || user_access("edit own voksenprofil profile");
+}
+
+function myassist_user_can_view_own_profile() {
+  return user_access("view own ungeprofil profile") || user_access("view own voksenprofil profile");
+}
+
+function myassist_user_has_profile_type($uid, $profiletype) {
+  $result = db_query('SELECT count(*) as {count} FROM {profile} WHERE uid = :uid AND type = :profiltype', array(':uid' => $uid, ':profiltype' => $profiletype));
+  foreach ($result as $record) {
+    if ($record->count > 0) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function myassist_user_has_youth_profile($uid) {
+  return myassist_user_has_profile_type($uid, "ungeprofil");
+}
+
+function myassist_user_has_adult_profile($uid) {
+  return myassist_user_has_profile_type($uid, "voksenprofil");
+}
+
+function myassist_user_edit_my_profile() {
+  global $user;
+
+  $hasAdult = myassist_user_has_adult_profile($user->uid);
+  $hasYouth = myassist_user_has_youth_profile($user->uid);
+  $suffix = "";
+  if ($hasAdult) {
+    $suffix = "/voksenprofil";
+  } elseif ($hasYouth) {
+    $suffix = "/ungeprofil";
+  }
+
+  drupal_goto('user/' . $user->uid . '/edit' . $suffix);
+}
+
+function myassist_user_view_my_achievements() {
+  global $user;
+  drupal_goto('user/'.$user->uid.'/achievements');
+}
+function myassist_user_view_my_points() {
+  global $user;
+  drupal_goto('user/'.$user->uid.'/points');
+}
+function myassist_user_view_my_profile() {
+  drupal_goto('user/');
+}
+
+
+/**
+ * Implements hook_preprocess_HOOK().
+ * Pass profile page title to page title
+ */
+function myassist_user_preprocess_page(&$variables) {
+  try {
+    $data = (
+      $variables['page'] &&
+      $variables['page']['content'] &&
+      $variables['page']['content']['system_main']
+    ) ? $variables['page']['content']['system_main'] : array();
+    if (array_key_exists("#title", $data)) {
+      $variables['title'] = $data["#title"];
+    }
+
+    foreach ($data as $name => $value) {
+      if (strpos($name, "profile_", 0) === 0 and array_key_exists("#title", $value)) {
+        $variables['title'] = $value["#title"];
+        unset($data[$name]["#title"]);
+      }
+    }
+  } catch (Exception $e) {
+  }
+}
+
+/**
+ * Implements hook_preprocess_HOOK().
+ * Put author roles in class array
+ */
+function myassist_user_preprocess_node(&$vars) {
+  global $user;
+  if (array_key_exists('node', $vars)) {
+    $author = user_load($vars['node']->uid);
+    if ($author) {
+      foreach ($author->roles as $role) {
+        $role = str_replace(' ', '-', $role);
+        $role = str_replace('æ', 'ae', $role);
+        $role = str_replace('ø', 'oe', $role);
+        $role = str_replace('å', 'aa', $role);
+        $role = str_replace('Æ', 'Ae', $role);
+        $role = str_replace('Ø', 'Oe', $role);
+        $role = str_replace('Å', 'Aa', $role);
+        $role = preg_replace('/[^\d\w_-]/', '', $role);
+        $vars['classes_array'][] = "author-role_$role";
+      }
+      if ($author->uid === $user->uid) {
+        $vars['classes_array'][] = "author-is-current";
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ * Insert 'editing "<username>"' in title
+ */
+function myassist_user_form_user_profile_form_alter(&$form, &$form_state, $form_id) {
+  $form['#title'] = t('Editing "@username"', array('@username' => $form["#user"]->name));
+  if (!user_access('administer users')) {
+    unset($form['locale']);
+  }
+
+  global $user;
+  $account = $form['#user'];
+  if ($user->uid != $account->uid && myassist_user_has_youth_profile($account->uid)) {
+    unset($form['account']['mail']);
+  }
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function myassist_user_block_info() {
+  $blocks = array();
+  $blocks['username'] = array(
+    'info' => t('Username'),
+    'cache' => DRUPAL_NO_CACHE
+  );
+  $blocks['avatar'] = array(
+    'info' => t('Avatar'),
+    'cache' => DRUPAL_NO_CACHE
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function myassist_user_block_view($delta = '') {
+  global $user;
+  $block = array();
+
+  switch ($delta) {
+    case 'username':
+      if (isset($user->name)) {
+        $block['content'] = array(
+          '#theme' => "myassist_data",
+          '#weight' => 0,
+          '#title' => t('Username'),
+          '#class' => 'username',
+          '#text' => $user->name,
+        );
+      }
+      break;
+    case 'avatar':
+      if ($user->uid > 0) {
+        $block['content'] = array(
+            '#markup' => theme('user_picture', array('account' => $user)),
+            '#weight' => -10,
+        );
+      }
+      break;
+  }
+
+  return $block;
+}

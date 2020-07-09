@@ -1,0 +1,299 @@
+<?php
+/**
+ * @file
+ * Code for the MyAssist Questions/Answers feature.
+ */
+
+define('ANSWER_PATH_LOGIN_PAGE', 'user/login-to-answer');
+
+include_once 'myassist_questions_answers.features.inc';
+include_once 'myassist_questions_answers_views_handler_answers_count.inc';
+include_once 'myassist_questions_answers_views_handler_latest_activity.inc';
+
+/**
+ * Implements hook_preprocess_rate_template_number_up_down().
+ * Hide the downvote button
+ */
+function myassist_questions_answers_preprocess_rate_template_number_up_down(&$variables) {
+    extract($variables);
+    $variables["down_button"] = "";
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function myassist_questions_answers_block_info() {
+  $blocks = array();
+  $blocks['newQuestion'] = array(
+    'info' => t('New question'),
+    'cache' => DRUPAL_CACHE_GLOBAL, // The block is the same for every user on every page where it is visible.
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function myassist_questions_answers_block_view($delta = '') {
+  $block = array();
+
+  if (user_access("create answers_question content")) {
+    switch ($delta) {
+      case 'newQuestion':
+        $block['content'] = array(
+          '#theme' => 'myassist_button',
+          '#class' => 'add-question',
+          '#href' => '/node/add/answers-question'
+        );
+    }
+  }
+  return $block;
+}
+
+/**
+ * Implements hook_node_view().
+ */
+function myassist_questions_answers_node_view($node, $view_mode, $langcode) {
+  switch ($node->type) {
+    case 'answers_question':
+      if (property_exists($node, "field_advisor")) {
+
+        $advisor_uid = null;
+        foreach ($node->field_advisor as $lang => $list) {
+          foreach ($list as $i => $obj) {
+            if (array_key_exists('target_id',$obj)) {
+              $advisor_uid = $obj['target_id'];
+            }
+          }
+        }
+        if ($advisor_uid != null) {
+          $advisor = user_load($advisor_uid);
+          if ($advisor) {
+
+            $vars = array("account"=>$advisor);
+            template_preprocess_user_picture($vars);
+
+            $node->content['advisor'] = array(
+              "#theme" => "question-advisor",
+              "#username" => user_load($node->uid)->name,
+              "#advisorname" => $advisor->name,
+              "#advisorpicture" => $vars['user_picture']
+            );
+          }
+        }
+      }
+
+      if ($view_mode === 'user_activity_list_entry') {
+        //$node->title = t("Question");
+
+        unset($node->content['answers_list']);
+        unset($node->content['new_answer_form']);
+      }
+
+      break;
+
+    case 'answers_answer':
+
+      unset($node->content['links']['node']['#links']['node-readmore']);
+
+      $flag = flag_get_flag('best_answer') or die('no "best_answer" flag defined');
+      if ($flag->is_flagged($node->nid)) {
+        //$node->content['best_answer']['#markup'] = '<span class="flag-helpertext">'.t("Valgt som bedste assist").'</span>' . $node->content['best_answer']['#markup'];
+        if (array_key_exists('best_answer', $node->content)) {
+          $node->content['best_answer']['#markup'] = $node->content['best_answer']['#markup'] . '<span class="flag-helpertext">' . t("Valgt som bedste assist") . '</span>';
+        }
+      }
+
+      if ($view_mode === 'user_activity_list_entry') {
+        $node->title = t("Assist");
+      }
+
+      break;
+  }
+}
+
+
+/**
+ * Implements hook_flag_access().
+ *
+ * Determines whether a user can flag a best answer for a question.
+ */
+function myassist_questions_answers_flag_access($flag, $content_id, $action, $account) {
+  if ($flag->name == "best_answer") {
+    if ($account->uid === entity_metadata_wrapper('node', $content_id)->author->uid->value()) {
+      return true;
+    }
+    $roles = entity_metadata_wrapper('node', $content_id)->author->value()->roles;
+    if (is_array($roles) && !in_array("ung bruger", $roles)) {
+      return true;
+    }
+  }
+}
+
+/**
+ * Implements hook_menu().
+ */
+function myassist_questions_answers_menu() {
+  $items['node/%/lock'] = array(
+    'access callback' => 'myassist_questions_answers_canlock',
+    'access arguments' => array(1),
+    'page callback' => 'myassist_questions_answers_lock',
+    'page arguments' => array(1),
+  );
+  $items['node/%/unlock'] = array(
+    'access callback' => 'myassist_questions_answers_canlock',
+    'access arguments' => array(1),
+    'page callback' => 'myassist_questions_answers_lock',
+    'page arguments' => array(1,true),
+  );
+  $items[ANSWER_PATH_LOGIN_PAGE] = array(
+    'title' => 'Log in',
+    'page callback' => 'myassist_questions_answers_answer_to_login_page',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+function myassist_questions_answers_answers_lock_info() {
+  return true;
+}
+
+function myassist_questions_answers_canlock($nid) {
+  global $user;
+  if (is_array($user->roles) && (in_array('moderator', $user->roles) || in_array('administrator', $user->roles))) {
+    return true;
+  }
+  $node = entity_metadata_wrapper('node', $nid);
+  if ($node && $node->author) {
+    if ($node->author->uid->value() === $user->uid) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function myassist_questions_answers_lock($nid, $unlock=false) {
+  if (myassist_questions_answers_canlock($nid)) {
+    $node = node_load($nid);
+    if ($node) {
+      if ($unlock) {
+        answers_question_lock_unset($node, "myassist_questions_answers");
+      } else {
+        answers_question_lock_set($node, "myassist_questions_answers");
+      }
+      drupal_goto("/node/$nid");
+      return true;
+    }
+  }
+  drupal_goto("/node/$nid");
+  return false;
+}
+
+/**
+ * Redirects anonymous users that want to answer a question to login page.
+ */
+function myassist_questions_answers_answer_to_login_page() {
+  drupal_set_message(t('You must login before you can answer a question.'), 'status', FALSE);
+
+  drupal_set_title(t('Log in'));
+
+  module_load_include('inc', 'user', 'user.pages');
+  return user_page();
+}
+
+function myassist_questions_answers_form_alter(&$form, $form_state, $form_id) {
+  $textarea_height = 3;
+  if ($form_id == 'answers_answer_node_form' && array_key_exists('body', $form) && is_array($form['body'])) {
+    foreach ($form['body'] as $lang => $arr) {
+      if (is_array($arr)) {
+        foreach ($arr as $index => $node) {
+          if (is_array($node) && array_key_exists("#entity_type", $node) && $node["#entity_type"] === "node" && array_key_exists("#bundle", $node) && $node["#bundle"] === "answers_answer") {
+            $form['body'][$lang][$index]["#rows"] = $textarea_height;
+          }
+        }
+      }
+    }
+  }
+}
+
+
+function myassist_questions_answers_theme($existing, $type, $theme, $path){
+  return array(
+    'question-advisor' => array(
+      'template' => 'templates/myassist_question_advisor', // define myassist_points.tpl.php inside module - point to myassist_achievements/templates/myassist_points.tpl.php
+      'variables' => array('username' => NULL, 'advisorname' => NULL, 'advisorpicture' => NULL), //define all variables used in the template file
+    )
+  );
+}
+
+/*
+ * Implements hook_views_data().
+ * */
+function myassist_questions_answers_views_data() {
+  $data['answers']['answers_count'] = array(
+    'title' => t('Answers count'),
+    'help' => t('Sorts on the number of answers to a question.'),
+    'sort' => array(
+      'handler' => 'myassist_questions_answers_views_handler_answers_count',
+    ),
+  );
+  $data['answers']['latest_activity'] = array(
+    'title' => t('Latest activity'),
+    'help' => t('Sorts on the latest activity in a question.'),
+    'sort' => array(
+      'handler' => 'myassist_questions_answers_views_handler_latest_activity',
+    ),
+  );
+  return $data;
+}
+
+/*
+ * Check if the current time is within opening hours * @return * TRUE if the current time is within opening hours * @todo opening hours should be configurable fields in the administration
+ */
+function myassist_questions_answers_uf_open_to_posts() {
+  $open = true;
+  $closingtime = 22;
+  $openingtime = 9;
+  $timezone = new DateTimeZone( "Europe/Copenhagen" );
+  $date = new DateTime();
+  $date->setTimezone($timezone);
+  $present_hour = $date->format('H');
+  if ($present_hour > ($closingtime -1) || $present_hour < $openingtime) {
+    $open = false;
+  }
+  return $open;
+}
+
+/**
+ * Implements hook_preprocess_HOOK().
+ */
+function myassist_questions_answers_preprocess_node(&$variables) {
+  $variables['locked'] = (isset($variables['locked']) ? $variables['locked'] : NULL);
+  if ($variables['type'] == 'answers_question' && !$variables['locked'] && $variables['view_mode'] !== 'user_activity_list_entry') {
+    $node_uri = node_uri($variables['node']);
+    // Redirect anonymous users to the login page.
+    if (user_is_anonymous()) {
+      $variables['node_url_answer'] = url(
+        ANSWER_PATH_LOGIN_PAGE,
+        array(
+          'query' => array(
+            'destination' => $node_uri['path'] . '#new-answer-form',
+          ),
+        )
+      );
+    }
+    // Add a #fragment to direct logged users to the answer form inside
+    // the page.
+    else {
+      $variables['node_url_answer'] = url(
+        $node_uri['path'],
+        array(
+          'fragment' => 'new-answer-form',
+          'absolute' => TRUE,
+        )
+      );
+    }
+  }
+}

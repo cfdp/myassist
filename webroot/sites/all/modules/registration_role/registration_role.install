@@ -1,0 +1,15 @@
+<?php
+
+/**
+ * @file
+ *
+ * Installation-related functionality for the registration role module.
+ */
+
+
+/**
+ * Implements hook_uninstall().
+ */
+function registration_role_uninstall() {
+  variable_del('registration_role_roles');
+}

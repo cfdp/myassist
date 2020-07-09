@@ -1,0 +1,60 @@
+diff --git a/comment_perm.module b/comment_perm.module
+index 9712b19..c84b5a9 100644
+--- a/comment_perm.module
++++ b/comment_perm.module
+@@ -56,6 +56,7 @@ function comment_perm_permission() {
+ /**
+  * Implementation of hook_comment().
+  */
++// @TODO: This D6 hook does not exist in D7, move validate to form validate function.
+ function comment_perm_comment(&$comment, $op) {
+   switch ($op) {
+     case 'validate':
+@@ -64,14 +65,30 @@ function comment_perm_comment(&$comment, $op) {
+         form_set_error('', _comment_perm_access_denied_message($nid));
+       }
+       break;
+-    case 'insert':
+-      $current_status = $comment['status'];
+-      $desired_status = comment_perm_post_without_permission_access($comment['nid']) ? COMMENT_PUBLISHED : COMMENT_NOT_PUBLISHED;
+-      if ($current_status != $desired_status) {
+-        db_query("UPDATE {comments} SET status=%d WHERE cid=%d", $desired_status, $comment['cid']);
+-        $comment['status'] = $desired_status;
+-      }
+-      break;
++   }
++}
++
++/**
++ * Implements hook_perm_comment_insert().
++ *
++ * - Alter comment status if it does not equal the desired status.
++ *
++ * @param $comment
++ */
++function comment_perm_comment_insert($comment) {
++  $desired_status = comment_perm_post_without_permission_access($comment->nid) ? COMMENT_PUBLISHED : COMMENT_NOT_PUBLISHED;
++
++  // If current status does not equal the desired status.
++  if ($comment->status != $desired_status) {
++    // Set status on comment object.
++    $comment->status = $desired_status;
++    // Update comment in db.
++    db_update('comment')
++      ->fields(array(
++        'status' => $desired_status,
++      ))
++      ->condition('cid', $comment->cid)
++      ->execute();
+   }
+ }
+ 
+@@ -240,7 +257,7 @@ function comment_perm_post_without_permission_access($node) {
+   }
+ 
+   // non-comment_perm controlled node types default to whatever permission Drupal gives them.
+-  return user_access('post comments without approval') ? TRUE : FALSE;
++  return user_access('skip comment approval');
+ }
+ 
+ /**

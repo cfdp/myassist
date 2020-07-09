@@ -1,0 +1,21 @@
+/*-------------------------------
+
+	BPOPUP.CSS
+
+-------------------------------*/
+
+#block-block-26 {
+  display: none;
+  max-width: 400px;
+  padding: 1em;
+  background-color: white;
+  color: #38535e;
+}
+
+a.b-close {
+  float: right;
+}
+
+a#decline-popup {
+  margin-left: .5em;
+}

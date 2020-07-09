@@ -1,0 +1,8 @@
+<?php
+
+/**
+ * @file
+ * Code for the MyAssist Podcast feature.
+ */
+
+include_once 'myassist_podcast.features.inc';

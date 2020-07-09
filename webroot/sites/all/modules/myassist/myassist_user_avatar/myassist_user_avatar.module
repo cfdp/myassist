@@ -1,0 +1,56 @@
+<?php
+/**
+ * @file
+ * Code for the myassist_user_avatar feature.
+ */
+
+include_once 'myassist_user_avatar.features.inc';
+
+
+function myassist_user_avatar_field_widget_form_alter(&$element, &$form_state, $context) {
+  if (isset($element[0]) && array_key_exists('#field_name', $element[0]) && $element[0]['#field_name'] == 'field_avatar' && isset($element[0]['#upload_validators']['file_validate_image_resolution'])) {
+    $element[0]['#upload_validators']['myassist_user_avatar_file_validate'] = $element[0]['#upload_validators']['file_validate_image_resolution'];
+    unset($element[0]['#upload_validators']['file_validate_image_resolution']); // Disable normal resolution check & fix
+  }
+}
+
+/**
+ * Implements hook_file_validate().
+ * Reimplement image resizing to crop the image
+ */
+function myassist_user_avatar_file_validate($file, $maximum_dimensions="200x200", $minimum_dimensions=0) {
+  $errors = array();
+  $path = substr(current_path(),0,42);
+
+  // Check first that the file is an image and that we are actually uploading a user avatar.
+  if ($info = image_get_info($file->uri) && $path == 'file/ajax/profile_ungeprofil/field_avatar/') {
+    if ($maximum_dimensions) {
+      // Check that it is smaller than the given dimensions.
+      list($width, $height) = explode('x', $maximum_dimensions);
+      if ($info['width'] > $width || $info['height'] > $height) {
+        // Try to resize the image to fit the dimensions.
+        if ($image = image_load($file->uri)) {
+          image_scale_and_crop($image, $width, $height);
+          // Rotate the image based on EXIF information. Hooray for ImageMagick
+          $image->ops['auto-orient'] = "-auto-orient";
+          image_save($image);
+          $file->filesize = $image->info['file_size'];
+          drupal_set_message(t('The image was resized to fit within the maximum allowed dimensions of %dimensions pixels.', array('%dimensions' => $maximum_dimensions)));
+        }
+        else {
+          $errors[] = t('The image is too large; the maximum dimensions are %dimensions pixels.', array('%dimensions' => $maximum_dimensions));
+        }
+      }
+    }
+
+    if ($minimum_dimensions) {
+      // Check that it is larger than the given dimensions.
+      list($width, $height) = explode('x', $minimum_dimensions);
+      if ($info['width'] < $width || $info['height'] < $height) {
+        $errors[] = t('The image is too small; the minimum dimensions are %dimensions pixels.', array('%dimensions' => $minimum_dimensions));
+      }
+    }
+  }
+
+  return $errors;
+}

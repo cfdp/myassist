@@ -1,0 +1,12 @@
+name = "Registration role"
+description = "Automatically assign a role to all new users who register."
+package = "Registration"
+core = "7.x"
+configure = admin/config/people/registration_role
+
+; Information added by Drupal.org packaging script on 2017-07-06
+version = "7.x-1.2"
+core = "7.x"
+project = "registration_role"
+datestamp = "1499345045"
+

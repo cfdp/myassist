@@ -1,0 +1,36 @@
+<?php
+/**
+ * @file
+ * Code for the MyAssist Core feature.
+ */
+
+include_once 'myassist_core.features.inc';
+function myassist_core_theme($existing, $type, $theme, $path){
+  return array(
+    'myassist_button' => array(
+      'template' => 'templates/myassist_button', // define myassist_points.tpl.php inside module - point to myassist_achievements/templates/myassist_points.tpl.php
+      'variables' => array('class' => NULL, 'href' => NULL, 'content' => NULL), //define all variables used in the template file
+    ),
+    'myassist_data' => array(
+      'template' => 'templates/myassist_data', // define myassist_points.tpl.php inside module - point to myassist_achievements/templates/myassist_points.tpl.php
+      'variables' => array('points' => null, 'href' => NULL, 'text' => NULL, 'class' => NULL), //define all variables used in the template file
+    ),
+  );
+}
+
+/**
+ * Implements hook_mail_alter().
+ */
+function myassist_core_mail_alter(&$message)
+{
+  if(variable_get('enable_mailcatcher_hack', false)) {
+    if(is_array($message['body'])) {
+      foreach ($message['body'] as $key => $value) {
+        $message['body'][$key] = base64_encode($message['body'][$key]);
+      }
+    } else {
+      $message['body'] = base64_encode($message['body']);
+    }
+    $message['headers']['Content-Transfer-Encoding'] = 'base64';
+  }
+}
