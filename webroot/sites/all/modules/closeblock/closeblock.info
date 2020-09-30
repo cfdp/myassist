@@ -1,5 +1,5 @@
 name = Close block
-description = Close block: add ajax close buttom to block
+description = Close block: add ajax close button to block
 package = Custom
 core = 7.x
 configure = admin/appearance/settings
@@ -10,10 +10,8 @@ core = "7.x"
 project = "closeblock"
 datestamp = "1345183304"
 
-
-; Information added by Drupal.org packaging script on 2014-07-01
-version = "7.x-1.6"
+; Information added by Drupal.org packaging script on 2020-01-08
+version = "7.x-1.7"
 core = "7.x"
 project = "closeblock"
-datestamp = "1404189528"
-
+datestamp = "1578479887"

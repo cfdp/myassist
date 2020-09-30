@@ -3,27 +3,26 @@
   Drupal.behaviors.closeblock = {
 
     attach: function (context, settings) {
-      
       if (settings.closeblock == undefined) {
         return;
       }
-      
+
       $.each(settings.closeblock, function(id, info) {
         $('#'+ id  + ':not(.closeblock-processed)', context).addClass('closeblock-processed').each(function() {
           var
             $block = $(this);
-            
+
           if (info.closed) {
             $block.hide();
             return;
           }
-          
+
           var
-            $close_buttton = $('<span />').addClass('closeblock-button').html('close'),
+            $close_buttton = $('<span />').addClass('closeblock-button').html(Drupal.settings.button_text),
             $close_contaier = $('<div />').addClass('closeblock').append($close_buttton);
-          
+
           $block.prepend($close_contaier);
-          
+
           $close_buttton.click(function() {
             if (info.type) {
               $block[info.type](info.speed);
@@ -39,9 +38,9 @@
           });
         });
       });
-      
+
     }
 
   };
-  
+
 })(jQuery);

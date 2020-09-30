@@ -5,7 +5,7 @@
  * Install hooks for Closeblock.
  */
 
- /**
+/**
  * Implements hook_schema().
  */
 function closeblock_schema() {
@@ -59,7 +59,7 @@ function closeblock_schema() {
       'list' => array('theme', 'module', 'uid'),
     ),
   );
-  
+
   return $schema;
 }
 
