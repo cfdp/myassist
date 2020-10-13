@@ -566,13 +566,14 @@ $conf['404_fast_html'] = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML+RDFa 1.0//EN"
  */
 # $conf['allow_authorize_operations'] = FALSE;
 
-$local_settings = dirname(__FILE__) . '/settings.local.php';
-if (is_readable($local_settings)) {
-  require $local_settings;
-}
-
 // Automatically generated include for settings managed by ddev.
 $ddev_settings = dirname(__FILE__) . '/settings.ddev.php';
 if (is_readable($ddev_settings) && getenv('IS_DDEV_PROJECT') == 'true') {
   require $ddev_settings;
 }
+
+$local_settings = dirname(__FILE__) . '/settings.local.php';
+if (is_readable($local_settings)) {
+  require $local_settings;
+}
+
