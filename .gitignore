@@ -1,6 +1,7 @@
 .idea
 *.DS_Store
 .ruby-version
+*.sublime-workspace
 
 # Ignore configuration files that may contain sensitive information.
 webroot/sites/*/settings.*.php
@@ -11,6 +12,9 @@ webroot/sites/*/private
 
 /logs
 /sql
+.editorconfig
+*.sql.gz
+*.sql
 
 # Cache and dev files
 .sass-cache

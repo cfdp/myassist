@@ -4,31 +4,32 @@
  * @file
  * Add close button to blocks.
  */
- 
-define('CLOSEBLOCK_ACTIVE',   0);
-define('CLOSEBLOCK_CUSTOM',   0);
-define('CLOSEBLOCK_TYPE',     2);
-define('CLOSEBLOCK_SPEED',    500);
-define('CLOSEBLOCK_SAVE',     1);
-define('CLOSEBLOCK_COUNT',    1);
-define('CLOSEBLOCK_FREQUENCY','');
+
+define('CLOSEBLOCK_ACTIVE', 0);
+define('CLOSEBLOCK_CUSTOM', 0);
+define('CLOSEBLOCK_TYPE', 2);
+define('CLOSEBLOCK_SPEED', 500);
+define('CLOSEBLOCK_SAVE', 1);
+define('CLOSEBLOCK_COUNT', 1);
+define('CLOSEBLOCK_FREQUENCY', '');
+define('CLOSEBLOCK_BUTTON_TEXT', 'close');
 
 require_once 'includes/closeblock.api.inc';
 require_once 'includes/closeblock.form.inc';
 require_once 'model/closeblock.db.inc';
- 
- /**
- * Implements hook_permission()
+
+/**
+ * Implements hook_permission().
  */
 function closeblock_permission() {
   return array(
     'closeblock' => array(
       'title' => t('Close block'),
-      'description' => t('Add close button to block.')
+      'description' => t('Add close button to block.'),
     ),
   );
 }
- 
+
 /**
  * Implements hook_init().
  */
@@ -56,10 +57,10 @@ function closeblock_menu() {
  * Implements hook_theme().
  */
 function closeblock_theme($existing, $type, $theme, $path) {
-	return array(
+  return array(
     'closeblock_block_id' => array(
-      'path' => $path .'/theme',
-      'file' => 'closeblock.theme.inc'
+      'path' => $path . '/theme',
+      'file' => 'closeblock.theme.inc',
     ),
   );
 }
